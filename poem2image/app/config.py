@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     emotion_agent_model: str = "meta-llama/Llama-3.1-8B-Instruct"
     semantic_agent_model: str = "meta-llama/Llama-3.1-8B-Instruct"
     metaphor_agent_model: str = "meta-llama/Llama-3.1-8B-Instruct"
-    agent_max_tokens: int = 450
+    agent_max_tokens: int = 1000
 
     # Optional: path to a calibrated theme bank JSON file
     theme_bank_path: str = ""
