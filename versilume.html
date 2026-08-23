@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Versilume — Poems, illuminated</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:            #14121f;
+    --ink-panel:      #1d1a2b;
+    --ink-panel-2:    #241f38;
+    --parchment:      #ede3cb;
+    --parchment-dim:  #d9cdac;
+    --gold:           #cda434;
+    --gold-bright:    #e8c565;
+    --lilac:          #a68fd4;
+    --lilac-dim:      #7c6ba0;
+    --text-hi:        #f4efe0;
+    --text-mid:       #b9b3c9;
+    --text-low:       #7d768f;
+    --danger:         #d47a6a;
+
+    --display: 'Newsreader', serif;
+    --body:    'Work Sans', sans-serif;
+    --mono:    'JetBrains Mono', monospace;
+
+    --radius: 2px;
+    --ease: cubic-bezier(.22,.61,.36,1);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--ink);
+    color:var(--text-hi);
+    font-family:var(--body);
+    line-height:1.5;
+    overflow-x:hidden;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(166,143,212,.10), transparent 60%),
+      radial-gradient(ellipse 700px 600px at 100% 20%, rgba(205,164,52,.08), transparent 55%);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+  }
+
+  a{ color:inherit; }
+  ::selection{ background:var(--gold); color:var(--ink); }
+
+  :focus-visible{
+    outline:2px solid var(--gold-bright);
+    outline-offset:3px;
+  }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+  @media (max-width:640px){ .wrap{ padding:0 20px; } }
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(20,18,31,.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(205,164,52,.15);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 0;
+  }
+  .brand{
+    display:flex; align-items:center; gap:12px;
+    font-family:var(--display); font-style:italic; font-weight:500;
+    font-size:1.35rem; letter-spacing:.01em;
+    text-decoration:none;
+  }
+  .brand-mark{ width:26px; height:26px; flex-shrink:0; }
+  .nav-links{ display:flex; gap:36px; list-style:none; }
+  .nav-links a{
+    text-decoration:none; color:var(--text-mid); font-size:.92rem;
+    letter-spacing:.02em; transition:color .25s var(--ease);
+  }
+  .nav-links a:hover{ color:var(--gold-bright); }
+  .nav-toggle{ display:none; background:none; border:0; color:var(--text-hi); font-size:1.4rem; cursor:pointer; }
+  @media (max-width:760px){
+    .nav-links{ display:none; }
+    .nav-toggle{ display:block; }
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:88px 0 96px;
+    display:grid; grid-template-columns:1.1fr .9fr; gap:56px; align-items:center;
+  }
+  @media (max-width:900px){ .hero{ grid-template-columns:1fr; padding:56px 0 64px; gap:40px; } }
+
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--lilac); display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--lilac-dim); }
+
+  h1{
+    font-family:var(--display); font-weight:500; font-size:clamp(2.4rem, 5vw, 4rem);
+    line-height:1.08; letter-spacing:-.01em; color:var(--text-hi);
+  }
+  h1 em{ font-style:italic; color:var(--gold-bright); font-weight:500; }
+
+  .hero p.lede{
+    margin-top:22px; max-width:46ch; color:var(--text-mid); font-size:1.08rem; line-height:1.65;
+  }
+
+  .hero-cta{ display:flex; gap:16px; margin-top:34px; flex-wrap:wrap; }
+
+  .btn{
+    font-family:var(--body); font-weight:600; font-size:.94rem;
+    padding:14px 26px; border-radius:var(--radius); cursor:pointer;
+    border:1px solid transparent; letter-spacing:.01em;
+    transition:transform .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease), border-color .2s var(--ease);
+    display:inline-flex; align-items:center; gap:9px;
+  }
+  .btn-gold{
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color:#1b1608;
+  }
+  .btn-gold:hover{ transform:translateY(-2px); box-shadow:0 10px 26px -8px rgba(205,164,52,.55); }
+  .btn-ghost{
+    background:transparent; border-color:rgba(244,239,224,.22); color:var(--text-hi);
+  }
+  .btn-ghost:hover{ border-color:var(--lilac); color:var(--lilac); }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  /* ---------- ink bloom signature element ---------- */
+  .bloom-stage{
+    position:relative; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;
+  }
+  .bloom-stage svg{ width:100%; height:100%; max-width:420px; }
+  .bloom-ring{
+    fill:none; stroke:rgba(166,143,212,.25); stroke-width:1;
+  }
+  .bloom-blob{
+    fill:url(#bloomGrad);
+    transform-origin:center;
+    animation:bloomPulse 7s ease-in-out infinite;
+    filter:drop-shadow(0 0 34px rgba(205,164,52,.25));
+  }
+  @keyframes bloomPulse{
+    0%,100%{ transform:scale(1) rotate(0deg); }
+    50%{ transform:scale(1.045) rotate(3deg); }
+  }
+  .bloom-dot{ fill:var(--gold-bright); opacity:.85; }
+
+  /* ---------- section shell ---------- */
+  section{ padding:100px 0; }
+  .section-head{ max-width:640px; margin-bottom:52px; }
+  .section-head .eyebrow{ margin-bottom:16px; }
+  h2{
+    font-family:var(--display); font-weight:500; font-size:clamp(1.9rem,3.4vw,2.6rem);
+    letter-spacing:-.01em;
+  }
+  .section-head p{ color:var(--text-mid); margin-top:14px; font-size:1.02rem; max-width:52ch; }
+
+  hr.divider{
+    border:0; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(205,164,52,.35), transparent);
+  }
+
+  /* ---------- compose ---------- */
+  .compose-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start;
+  }
+  @media (max-width:900px){ .compose-grid{ grid-template-columns:1fr; } }
+
+  .page{
+    background:var(--parchment);
+    color:#241f1a;
+    border-radius:var(--radius);
+    padding:38px 34px 30px;
+    position:relative;
+    box-shadow:0 30px 60px -30px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.15) inset;
+  }
+  .page::before, .page::after{
+    content:''; position:absolute; width:22px; height:22px;
+    border:2px solid var(--gold); opacity:.7;
+  }
+  .page::before{ top:10px; left:10px; border-right:0; border-bottom:0; }
+  .page::after{ bottom:10px; right:10px; border-left:0; border-top:0; }
+
+  .page-label{
+    font-family:var(--mono); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase;
+    color:#8a7a4f; margin-bottom:14px; display:flex; justify-content:space-between;
+  }
+  #poemInput{
+    width:100%; min-height:260px; resize:vertical;
+    background:transparent; border:none; outline:none;
+    font-family:var(--display); font-style:italic; font-size:1.28rem; line-height:1.75;
+    color:#241f1a;
+    background-image:repeating-linear-gradient(transparent, transparent 42px, rgba(36,31,26,.14) 43px);
+  }
+  #poemInput::placeholder{ color:#8a7a5f; opacity:.75; }
+
+  .page-foot{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:16px; padding-top:14px; border-top:1px dashed rgba(36,31,26,.25);
+    font-family:var(--mono); font-size:.76rem; color:#6d6046;
+  }
+  .page-foot .stat-warn{ color:var(--danger); }
+
+  /* style chips */
+  .field-label{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--text-low); margin:26px 0 12px;
+  }
+  .chips{ display:flex; flex-wrap:wrap; gap:9px; }
+  .chip{
+    font-family:var(--body); font-size:.86rem; padding:9px 16px;
+    border-radius:999px; border:1px solid rgba(244,239,224,.2);
+    background:transparent; color:var(--text-mid); cursor:pointer;
+    transition:all .2s var(--ease);
+  }
+  .chip:hover{ border-color:var(--lilac); color:var(--text-hi); }
+  .chip.active{
+    background:var(--lilac); border-color:var(--lilac); color:var(--ink);
+    font-weight:600;
+  }
+
+  .generate-row{ margin-top:32px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .hint{ font-size:.82rem; color:var(--text-low); }
+
+  /* ---------- output panel ---------- */
+  .output{
+    background:var(--ink-panel);
+    border:1px solid rgba(205,164,52,.14);
+    border-radius:var(--radius);
+    min-height:480px;
+    padding:34px;
+    display:flex; flex-direction:column;
+  }
+  .output-head{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;
+  }
+  .output-head .field-label{ margin:0; }
+  .output-body{
+    flex:1; display:flex; align-items:center; justify-content:center; text-align:center;
+  }
+
+  .empty-state{ color:var(--text-low); }
+  .empty-state svg{ width:64px; height:64px; margin-bottom:18px; opacity:.5; }
+  .empty-state p{ font-family:var(--display); font-style:italic; font-size:1.1rem; color:var(--text-mid); }
+
+  /* loading ink animation */
+  .loading-state{ display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .ink-loader{ width:90px; height:90px; }
+  .ink-loader circle{
+    fill:none; stroke:var(--gold-bright); stroke-width:2.5; stroke-linecap:round;
+    stroke-dasharray:230; stroke-dashoffset:60;
+    animation:inkSpin 1.6s linear infinite;
+    transform-origin:center;
+  }
+  @keyframes inkSpin{ to{ transform:rotate(360deg); } }
+  .loading-msg{ font-family:var(--mono); font-size:.82rem; color:var(--text-mid); letter-spacing:.03em; }
+
+  .error-state{ color:var(--danger); font-family:var(--mono); font-size:.85rem; max-width:38ch; }
+
+  /* generated images */
+  .gallery-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:18px; width:100%;
+  }
+  .frame{
+    position:relative; border:6px solid #17141f;
+    outline:1px solid rgba(205,164,52,.4);
+    outline-offset:-1px;
+    border-radius:2px;
+    overflow:hidden;
+    cursor:zoom-in;
+    background:var(--ink-panel-2);
+    aspect-ratio:1/1;
+  }
+  .frame img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s var(--ease); }
+  .frame:hover img{ transform:scale(1.06); }
+  .frame-actions{
+    position:absolute; inset:auto 0 0 0; padding:10px 12px;
+    background:linear-gradient(180deg, transparent, rgba(0,0,0,.75));
+    display:flex; justify-content:flex-end; opacity:0; transition:opacity .2s var(--ease);
+  }
+  .frame:hover .frame-actions{ opacity:1; }
+  .frame-actions button{
+    background:rgba(20,18,31,.8); border:1px solid rgba(244,239,224,.3);
+    color:var(--text-hi); width:30px; height:30px; border-radius:50%;
+    font-size:.85rem; cursor:pointer;
+  }
+
+  /* per-image result card: image + what Versilume read from that scene */
+  .result-card{ display:flex; flex-direction:column; gap:10px; }
+  .result-card .frame{ aspect-ratio:1/1; cursor:zoom-in; }
+  .badge-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .badge{
+    font-family:var(--mono); font-size:.66rem; letter-spacing:.06em; text-transform:uppercase;
+    padding:4px 9px; border-radius:20px; border:1px solid rgba(244,239,224,.18);
+    color:var(--text-mid); white-space:nowrap;
+  }
+  .badge-emotion{ color:var(--gold-bright); border-color:rgba(205,164,52,.35); }
+  .badge-theme{ color:var(--lilac); border-color:rgba(166,143,212,.35); }
+  .prompt-toggle{
+    align-self:flex-start; background:none; border:0; padding:0;
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.02em;
+    color:var(--text-low); cursor:pointer; text-decoration:underline;
+    text-underline-offset:3px; transition:color .2s var(--ease);
+  }
+  .prompt-toggle:hover{ color:var(--gold-bright); }
+  .prompt-text{
+    display:none; font-family:var(--mono); font-size:.74rem; line-height:1.55;
+    color:var(--text-mid); background:var(--ink-panel-2); border:1px solid rgba(244,239,224,.08);
+    border-radius:var(--radius); padding:10px 12px; margin-top:-2px;
+  }
+  .prompt-text.open{ display:block; }
+
+  /* ---------- gallery/history section ---------- */
+  #gallery .empty-state{ padding:40px 0; text-align:center; width:100%; }
+  .history-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:22px;
+  }
+  .history-card{
+    background:var(--ink-panel); border:1px solid rgba(244,239,224,.08);
+    border-radius:var(--radius); overflow:hidden;
+  }
+  .history-card .frame{ border-width:0; outline:none; border-radius:0; aspect-ratio:1/1; }
+  .history-meta{ padding:14px 16px 16px; }
+  .history-poem{
+    font-family:var(--display); font-style:italic; font-size:.92rem; color:var(--text-mid);
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .history-style{
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--lilac); margin-top:8px;
+  }
+  .history-badges{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+
+  /* ---------- how it works ---------- */
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(244,239,224,.08); border-radius:var(--radius); overflow:hidden; }
+  @media (max-width:760px){ .steps{ grid-template-columns:1fr; } }
+  .step{ background:var(--ink); padding:36px 30px; }
+  .step-num{ font-family:var(--mono); font-size:.78rem; color:var(--gold); letter-spacing:.1em; }
+  .step h3{ font-family:var(--display); font-weight:500; font-size:1.3rem; margin:14px 0 10px; }
+  .step p{ color:var(--text-mid); font-size:.94rem; line-height:1.6; }
+
+  /* ---------- lightbox ---------- */
+  .lightbox{
+    position:fixed; inset:0; background:rgba(10,9,16,.92); backdrop-filter:blur(6px);
+    display:none; align-items:center; justify-content:center; z-index:200; padding:40px;
+  }
+  .lightbox.open{ display:flex; }
+  .lightbox img{ max-width:min(88vw,780px); max-height:82vh; border:1px solid rgba(205,164,52,.4); }
+  .lightbox-close{
+    position:absolute; top:28px; right:32px; background:none; border:1px solid rgba(244,239,224,.3);
+    color:var(--text-hi); width:40px; height:40px; border-radius:50%; font-size:1.2rem; cursor:pointer;
+  }
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(16px);
+    background:var(--ink-panel-2); border:1px solid rgba(205,164,52,.3);
+    padding:12px 22px; border-radius:999px; font-size:.86rem;
+    opacity:0; pointer-events:none; transition:all .3s var(--ease);
+    font-family:var(--mono); z-index:300;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  footer{
+    border-top:1px solid rgba(244,239,224,.08); padding:44px 0; margin-top:40px;
+  }
+  .foot-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .foot-row p{ color:var(--text-low); font-size:.85rem; }
+  .foot-note{
+    font-family:var(--mono); font-size:.72rem; color:var(--lilac-dim);
+    background:rgba(166,143,212,.08); border:1px dashed rgba(166,143,212,.3);
+    padding:12px 16px; border-radius:var(--radius); margin-top:28px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#top" class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+        <path d="M20 4C20 4 8 14 8 24C8 30.6 13.4 36 20 36C26.6 36 32 30.6 32 24C32 14 20 4 20 4Z" fill="#cda434" opacity="0.9"/>
+        <path d="M20 12C20 12 13 18.5 13 24.5C13 28.6 16.1 32 20 32" stroke="#14121f" stroke-width="1.4" fill="none" opacity="0.5"/>
+      </svg>
+      Versilume
+    </a>
+    <ul class="nav-links">
+      <li><a href="#compose">Compose</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <div class="wrap hero">
+    <div>
+      <p class="eyebrow">Poetry, illuminated</p>
+      <h1>Every line you write<br><em>becomes</em> a vision.</h1>
+      <p class="lede">Write a poem. Versilume reads its emotion, theme, and imagery — then, if your poem moves through more than one scene or mood, it paints back one image per shift. No design skill required, just words.</p>
+      <div class="hero-cta">
+        <a href="#compose" class="btn btn-gold">Start writing →</a>
+        <a href="#how" class="btn btn-ghost">See how it works</a>
+      </div>
+    </div>
+    <div class="bloom-stage" aria-hidden="true">
+      <svg viewBox="0 0 400 400">
+        <defs>
+          <radialGradient id="bloomGrad" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#e8c565"/>
+            <stop offset="55%" stop-color="#a68fd4"/>
+            <stop offset="100%" stop-color="#5b4d82"/>
+          </radialGradient>
+        </defs>
+        <circle class="bloom-ring" cx="200" cy="200" r="170"/>
+        <circle class="bloom-ring" cx="200" cy="200" r="130" opacity="0.5"/>
+        <path class="bloom-blob" d="M200,70 C260,70 300,120 305,175 C310,235 275,300 205,320 C130,340 85,285 75,220 C65,155 110,95 150,80 C165,74 182,70 200,70 Z"/>
+        <circle class="bloom-dot" cx="140" cy="150" r="4"/>
+        <circle class="bloom-dot" cx="260" cy="200" r="3"/>
+        <circle class="bloom-dot" cx="200" cy="270" r="3.5"/>
+      </svg>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ============ COMPOSE ============ -->
+  <section id="compose">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">01 — The page</p>
+        <h2>Write, choose a style, and let it render.</h2>
+        <p>The more sensory your imagery — color, weather, texture, light — the more the generator has to work with.</p>
+      </div>
+
+      <div class="compose-grid">
+        <!-- LEFT: paper input -->
+        <div>
+          <div class="page">
+            <div class="page-label">
+              <span>Your poem</span>
+              <span id="lineCount">0 lines</span>
+            </div>
+            <textarea id="poemInput" placeholder="The last light falls through amber trees,
+a river holds the sky's reflection still—
+write what you see, and what you feel beneath it..."></textarea>
+            <div class="page-foot">
+              <span id="charCount">0 / 1200 characters</span>
+              <span id="wordCount">0 words</span>
+            </div>
+          </div>
+
+          <p class="field-label">Visual style</p>
+          <div class="chips" id="styleChips">
+            <button class="chip active" data-style="watercolor">Watercolor</button>
+            <button class="chip" data-style="oil-painting">Oil Painting</button>
+            <button class="chip" data-style="ink-sketch">Ink Sketch</button>
+            <button class="chip" data-style="photorealistic">Photorealistic</button>
+            <button class="chip" data-style="surreal">Surreal</button>
+            <button class="chip" data-style="ukiyo-e">Ukiyo-e</button>
+          </div>
+
+          <p class="field-label">Scene detection</p>
+          <div class="chips" id="modeChips">
+            <button class="chip active" data-mode="auto">Auto — let the poem decide</button>
+            <button class="chip" data-mode="single">Single image only</button>
+          </div>
+          <p class="hint" id="modeHint" style="display:block;margin-top:10px;">
+            Versilume looks for shifts in mood or subject and renders one image per scene it finds (up to 5).
+          </p>
+
+          <div class="generate-row">
+            <button class="btn btn-gold" id="generateBtn">
+              <span id="generateBtnLabel">Render this poem</span>
+            </button>
+            <span class="hint" id="statusHint">Write at least one line to begin.</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: output -->
+        <div class="output">
+          <div class="output-head">
+            <p class="field-label">Result</p>
+            <span class="hint" id="outputMeta"></span>
+          </div>
+          <div class="output-body" id="outputBody">
+            <div class="empty-state">
+              <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4">
+                <rect x="8" y="12" width="48" height="40" rx="2"/>
+                <circle cx="22" cy="26" r="5"/>
+                <path d="M8 44l14-14 10 10 8-8 16 16"/>
+              </svg>
+              <p>Your images will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">02 — Behind the page</p>
+        <h2>From stanza to image, in three steps.</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01</span>
+          <h3>You write</h3>
+          <p>A poem, a fragment, even a single evocative line — plus an optional rendering style.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <h3>Versilume reads it</h3>
+          <p>Each scene is summarized, scored for its dominant emotion and theme, and scanned for concrete visual details — the same three-part reading (emotion, theme, imagery) used in poem-to-image research literature.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <h3>It's painted back</h3>
+          <p>One image per scene returns to this page, each labeled with the mood and theme Versilume read from it — yours to view full-size, download, or send back for another pass.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ============ GALLERY / HISTORY ============ -->
+  <section id="gallery">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">03 — This session</p>
+        <h2>Everything you've rendered today.</h2>
+        <p>Your creations stay here for the length of this visit.</p>
+      </div>
+      <div id="historyGrid" class="history-grid">
+        <div class="empty-state">
+          <p>Nothing rendered yet — your first poem will appear here.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <a href="#top" class="brand" style="font-size:1.05rem;">Versilume</a>
+      <p>Built for poets who want to see what they wrote.</p>
+    </div>
+    <p class="foot-note">
+      Backend contract: POSTs to <code>POST /api/v1/generate</code> with JSON
+      <code>{ poem, force_single_image, style }</code>. Response shape:
+      <code>{ poem, num_segments, segments: [{segment_id, lines, elements:{summary, dominant_emotion, theme, visual_elements}, image_prompt}], images: [{segment_id, image_prompt, image_base64, mime_type, model_used}] }</code>.
+      Images are raw base64 + an explicit <code>mime_type</code> (not a URL) — rendered here as a <code>data:</code> URI.
+    </p>
+  </div>
+</footer>
+
+<!-- lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close">✕</button>
+  <img id="lightboxImg" src="" alt="Full size generated image">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   CONFIG
+   ========================================================= */
+const API_ENDPOINT = (window.location.port === "8000")
+  ? "/api/v1/generate"
+  : "http://localhost:8000/api/v1/generate"; // FastAPI route: app/api/routes.py -> POST /api/v1/generate
+const MAX_CHARS = 1200;
+
+/* Backend response shape (see app/models/schemas.py: PoemToImageResponse):
+   {
+     poem, num_segments,
+     segments: [{ segment_id, lines, elements:{summary, dominant_emotion, theme, visual_elements, ...}, image_prompt }],
+     images:   [{ segment_id, image_prompt, image_base64, mime_type, model_used }]
+   }
+   Images carry raw base64 + an explicit mime_type (not a URL) -- joined
+   with their matching segment by segment_id so each card can show the
+   emotion/theme Versilume actually read, not just the picture. */
+function parseApiResponse(json){
+  if (!Array.isArray(json.images) || !Array.isArray(json.segments)){
+    throw new Error("Unrecognized API response shape");
+  }
+  const segmentsById = new Map(json.segments.map(s => [s.segment_id, s]));
+  return json.images.map(img => {
+    const segment = segmentsById.get(img.segment_id);
+    return {
+      segmentId: img.segment_id,
+      src: `data:${img.mime_type};base64,${img.image_base64}`,
+      mimeType: img.mime_type,
+      modelUsed: img.model_used,
+      prompt: img.image_prompt,
+      emotion: segment?.elements?.dominant_emotion ?? null,
+      theme: segment?.elements?.theme ?? null,
+      summary: segment?.elements?.summary ?? null,
+    };
+  });
+}
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let selectedStyle = "watercolor";
+let segmentMode = "auto"; // "auto" -> backend auto-detects scenes | "single" -> force_single_image
+let history = [];
+
+/* =========================================================
+   DOM refs
+   ========================================================= */
+const poemInput   = document.getElementById('poemInput');
+const charCount   = document.getElementById('charCount');
+const wordCount   = document.getElementById('wordCount');
+const lineCount   = document.getElementById('lineCount');
+const styleChips  = document.getElementById('styleChips');
+const modeChips   = document.getElementById('modeChips');
+const modeHint    = document.getElementById('modeHint');
+const generateBtn = document.getElementById('generateBtn');
+const generateBtnLabel = document.getElementById('generateBtnLabel');
+const statusHint  = document.getElementById('statusHint');
+const outputBody  = document.getElementById('outputBody');
+const outputMeta  = document.getElementById('outputMeta');
+const historyGrid = document.getElementById('historyGrid');
+const lightbox      = document.getElementById('lightbox');
+const lightboxImg   = document.getElementById('lightboxImg');
+const lightboxClose = document.getElementById('lightboxClose');
+const toastEl = document.getElementById('toast');
+
+/* =========================================================
+   Poem input — live stats
+   ========================================================= */
+poemInput.addEventListener('input', () => {
+  const text = poemInput.value;
+  const chars = text.length;
+  const words = (text.trim().match(/\S+/g) || []).length;
+  const lines = (text.trim().match(/[^\r\n]+/g) || []).length;
+
+  charCount.textContent = `${chars} / ${MAX_CHARS} characters`;
+  charCount.parentElement.classList.toggle('stat-warn', chars > MAX_CHARS);
+  wordCount.textContent = `${words} word${words===1?'':'s'}`;
+  lineCount.textContent = `${lines} line${lines===1?'':'s'}`;
+
+  statusHint.textContent = text.trim().length
+    ? "Ready when you are."
+    : "Write at least one line to begin.";
+});
+
+/* =========================================================
+   Style chips
+   ========================================================= */
+styleChips.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  [...styleChips.children].forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  selectedStyle = chip.dataset.style;
+});
+
+/* =========================================================
+   Scene-detection mode (auto-segment vs. single image) —
+   the only image-count-adjacent control the backend actually
+   exposes; it doesn't accept an arbitrary image count.
+   ========================================================= */
+modeChips.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  [...modeChips.children].forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  segmentMode = chip.dataset.mode;
+  modeHint.textContent = segmentMode === 'single'
+    ? "Versilume will render exactly one image for the whole poem."
+    : "Versilume looks for shifts in mood or subject and renders one image per scene it finds (up to 5).";
+});
+
+/* =========================================================
+   Generate
+   ========================================================= */
+generateBtn.addEventListener('click', async () => {
+  const poem = poemInput.value.trim();
+  if (!poem){
+    statusHint.textContent = "Write a poem first — even one line works.";
+    poemInput.focus();
+    return;
+  }
+  if (poem.length > MAX_CHARS){
+    statusHint.textContent = `Please trim your poem below ${MAX_CHARS} characters.`;
+    return;
+  }
+
+  setLoading(true);
+
+  try{
+    const images = await requestImages(poem, selectedStyle, segmentMode === 'single');
+    renderResult(images);
+    addToHistory(poem, selectedStyle, images);
+    showToast("Your poem has been rendered.");
+  }catch(err){
+    renderError(err.message || "Something went wrong while generating your images.");
+  }finally{
+    setLoading(false);
+  }
+});
+
+async function requestImages(poem, style, forceSingleImage){
+  const res = await fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ poem, style, force_single_image: forceSingleImage })
+  });
+
+  if (!res.ok){
+    // FastAPI's HTTPException bodies are { detail: "..." } -- surface that
+    // message when present instead of just the status code.
+    let detail = `Backend responded with status ${res.status}`;
+    try{
+      const errJson = await res.json();
+      if (errJson.detail) detail = errJson.detail;
+    }catch(_){ /* body wasn't JSON, keep the generic message */ }
+    throw new Error(detail);
+  }
+  const json = await res.json();
+  return parseApiResponse(json);
+}
+
+/* =========================================================
+   Output rendering
+   ========================================================= */
+function setLoading(isLoading){
+  generateBtn.disabled = isLoading;
+  generateBtnLabel.textContent = isLoading ? "Rendering…" : "Render this poem";
+
+  if (isLoading){
+    outputMeta.textContent = "";
+    outputBody.innerHTML = `
+      <div class="loading-state">
+        <svg class="ink-loader" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="26"></circle>
+        </svg>
+        <span class="loading-msg" id="loadingMsg">reading the imagery…</span>
+      </div>`;
+    cycleLoadingMessages();
+  }
+}
+
+function cycleLoadingMessages(){
+  const msgs = ["reading the imagery…", "reading the mood…", "finding the theme…", "mixing pigment…", "laying down the first strokes…"];
+  let i = 0;
+  const el = document.getElementById('loadingMsg');
+  clearInterval(window.__loadingTimer);
+  window.__loadingTimer = setInterval(() => {
+    if (!el || !document.body.contains(el)){ clearInterval(window.__loadingTimer); return; }
+    i = (i + 1) % msgs.length;
+    el.textContent = msgs[i];
+  }, 1600);
+}
+
+function renderResult(images){
+  clearInterval(window.__loadingTimer);
+  const sceneWord = images.length === 1 ? "scene" : "scenes";
+  outputMeta.textContent = `${images.length} ${sceneWord} · ${labelForStyle(selectedStyle)}`;
+  outputBody.innerHTML = `<div class="gallery-grid">${images.map(img => frameHTML(img)).join('')}</div>`;
+  outputBody.style.alignItems = "stretch";
+}
+
+function renderError(message){
+  clearInterval(window.__loadingTimer);
+  outputMeta.textContent = "";
+  outputBody.style.alignItems = "center";
+  outputBody.innerHTML = `
+    <div class="error-state">
+      <p><strong>Couldn't render that one.</strong></p>
+      <p style="margin-top:8px;">${escapeHTML(message)}</p>
+    </div>`;
+}
+
+function frameHTML(img){
+  const promptId = `prompt-${img.segmentId}-${Math.random().toString(36).slice(2, 8)}`;
+  const badges = [
+    img.emotion ? `<span class="badge badge-emotion">${escapeHTML(img.emotion)}</span>` : '',
+    img.theme ? `<span class="badge badge-theme">${escapeHTML(formatTheme(img.theme))}</span>` : '',
+  ].join('');
+
+  return `
+    <div class="result-card">
+      <div class="frame">
+        <img src="${escapeAttr(img.src)}" alt="AI-generated image inspired by your poem" loading="lazy">
+        <div class="frame-actions">
+          <button class="dl-btn" data-src="${escapeAttr(img.src)}" data-mime="${escapeAttr(img.mimeType)}" title="Download" aria-label="Download image">⬇</button>
+        </div>
+      </div>
+      ${badges ? `<div class="badge-row">${badges}</div>` : ''}
+      ${img.prompt ? `
+        <button class="prompt-toggle" data-target="${promptId}">What Versilume read</button>
+        <p class="prompt-text" id="${promptId}">${escapeHTML(img.prompt)}</p>
+      ` : ''}
+    </div>`;
+}
+
+/* click-to-zoom, download, and prompt-toggle — all delegated */
+outputBody.addEventListener('click', (e) => {
+  const dl = e.target.closest('.dl-btn');
+  if (dl){
+    e.stopPropagation();
+    downloadImage(dl.dataset.src, dl.dataset.mime);
+    return;
+  }
+  const toggle = e.target.closest('.prompt-toggle');
+  if (toggle){
+    e.stopPropagation();
+    const el = document.getElementById(toggle.dataset.target);
+    if (el) el.classList.toggle('open');
+    return;
+  }
+  const frame = e.target.closest('.frame');
+  if (frame){
+    const img = frame.querySelector('img');
+    openLightbox(img.src);
+  }
+});
+historyGrid.addEventListener('click', (e) => {
+  const dl = e.target.closest('.dl-btn');
+  if (dl){
+    e.stopPropagation();
+    downloadImage(dl.dataset.src, dl.dataset.mime);
+    return;
+  }
+  const frame = e.target.closest('.frame');
+  if (frame){
+    const img = frame.querySelector('img');
+    if (img) openLightbox(img.src);
+  }
+});
+
+function downloadImage(src, mimeType){
+  const ext = (mimeType || 'image/png').split('/')[1]?.split('+')[0] || 'png';
+  const a = document.createElement('a');
+  a.href = src;
+  a.download = `versilume.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+/* =========================================================
+   Session history / gallery
+   ========================================================= */
+function addToHistory(poem, style, images){
+  history.unshift({ poem, style, images, at: new Date() });
+  renderHistory();
+}
+
+function renderHistory(){
+  if (!history.length) return;
+  historyGrid.innerHTML = history.flatMap(entry => {
+    return entry.images.map((img, idx) => {
+      const badges = [
+        img.emotion ? `<span class="badge badge-emotion">${escapeHTML(img.emotion)}</span>` : '',
+        img.theme ? `<span class="badge badge-theme">${escapeHTML(formatTheme(img.theme))}</span>` : '',
+      ].join('');
+      const sceneLabel = entry.images.length > 1 ? ` · Scene ${idx + 1}/${entry.images.length}` : '';
+      return `
+      <div class="history-card">
+        <div class="frame">
+          <img src="${escapeAttr(img.src)}" alt="Generated image from a saved poem" loading="lazy">
+          <div class="frame-actions">
+            <button class="dl-btn" data-src="${escapeAttr(img.src)}" data-mime="${escapeAttr(img.mimeType)}" title="Download" aria-label="Download image">⬇</button>
+          </div>
+        </div>
+        <div class="history-meta">
+          <p class="history-poem">${escapeHTML(entry.poem.split('\n')[0])}</p>
+          <p class="history-style">${labelForStyle(entry.style)}${sceneLabel}</p>
+          ${badges ? `<div class="history-badges">${badges}</div>` : ''}
+        </div>
+      </div>`;
+    });
+  }).join('');
+}
+
+/* =========================================================
+   Lightbox
+   ========================================================= */
+function openLightbox(src){
+  lightboxImg.src = src;
+  lightbox.classList.add('open');
+}
+function closeLightbox(){
+  lightbox.classList.remove('open');
+  lightboxImg.src = "";
+}
+lightboxClose.addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+
+/* =========================================================
+   Toast
+   ========================================================= */
+let toastTimer;
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+}
+
+/* =========================================================
+   Utilities
+   ========================================================= */
+function labelForStyle(key){
+  const map = {
+    "watercolor":"Watercolor", "oil-painting":"Oil Painting", "ink-sketch":"Ink Sketch",
+    "photorealistic":"Photorealistic", "surreal":"Surreal", "ukiyo-e":"Ukiyo-e"
+  };
+  return map[key] || key;
+}
+function formatTheme(theme){
+  // Backend themes are snake_case (e.g. "childhood_and_nostalgia") -- see
+  // THEME_BANK in app/services/nlp_pipeline.py.
+  return String(theme).replace(/_/g, ' ');
+}
+function escapeHTML(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+function escapeAttr(str){
+  return String(str).replace(/"/g, '&quot;');
+}
+</script>
+
+</body>
+</html>

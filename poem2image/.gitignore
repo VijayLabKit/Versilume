@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Generated / calibrated artifacts
+generated_images/
+app/data/calibrated_theme_bank.json
+app/data/tuning_report.json
+eval/evaluation_report.json
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/

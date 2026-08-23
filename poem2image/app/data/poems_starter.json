@@ -1,0 +1,65 @@
+{
+  "_note": "Starter set of PUBLIC-DOMAIN / traditional nursery rhymes only (safe to redistribute -- no modern copyrighted poems included). To reach 100 samples for prompt tuning, pull additional poems from the public research datasets referenced in the source papers: MiniPo & PoemSum (https://github.com/SofeeyaJ/Poetry-In-Pixels-Coling2025), P4I (https://github.com/SofeeyaJ/PoemTale-Diffusion), or MorphoVerse for Indian-language poems (https://github.com/SofeeyaJ/Crossing-Borders---AAAI26). See scripts/expand_dataset.py for the loader format.",
+  "poems": [
+    {
+      "id": 1,
+      "title": "Twinkle Twinkle Little Star",
+      "text": "Twinkle, twinkle little star, how I wonder what you are.\nUp above the world so high, like a diamond in the sky.\nTwinkle, twinkle little star, how I wonder what you are."
+    },
+    {
+      "id": 2,
+      "title": "One Two Zoo",
+      "text": "One, two, one, two lets visit the zoo\nThree, four, three, four hear the lion roar\nFive, six, five, six watch the monkey tricks\nSeven, eight, seven, eight peacock looks so great\nNine, ten, nine, ten we shall come again."
+    },
+    {
+      "id": 3,
+      "title": "Two Little Hands",
+      "text": "Two little hands go Clap clap clap\nTwo little feet go Tap tap tap\nTwo little eyes That open wide\nOne little head Nods side to side"
+    },
+    {
+      "id": 4,
+      "title": "Bits of Paper",
+      "text": "Bits of paper, Bits of paper\nLying on the floor, Lying on the floor\nMakes the place untidy, Makes the place untidy\nPick them up, Pick them up\nCollect all the papers, Collect all the papers\nWhere shall we throw? Where shall we throw?\nThrow them in the dustbin, Throw them in the dustbin\nNow the place is clean, Now the place is clean"
+    },
+    {
+      "id": 5,
+      "title": "Once a Lion Caught a Mouse",
+      "text": "Once a lion caught a mouse. The mouse begged the lion not to eat him. Someday, he said, he would help the lion. The lion set the mouse free.\nOne day, the lion got caught in a hunter's net. The mouse came to help the lion. He cut the net with his sharp teeth. The lion was set free. The lion and the mouse became good friends."
+    },
+    {
+      "id": 6,
+      "title": "I Have a Toothbrush Neat and Gay",
+      "text": "I have a toothbrush, neat and gay,\nTo brush my teeth with, everyday.\nI brush them each morning,\nThen I brush them each night;\nTill all are shining, Clean and bright."
+    },
+    {
+      "id": 7,
+      "title": "Polly Put the Kettle On",
+      "text": "Polly, put the kettle on,\nPolly, put the kettle on,\nPolly, put the kettle on, We'll all have tea.\nSukey, take it off again,\nSukey, take it off again,\nSukey, take it off again, They've all gone away.\nBlow the fire and make the toast,\nPut the muffins on to roast,\nBlow the fire and make the toast, We'll all have tea."
+    },
+    {
+      "id": 8,
+      "title": "Pussy Cat Pussy Cat",
+      "text": "Pussy cat, pussy cat, Where have you been?\n\"I've been to London to Look at the Queen.\"\nPussy cat, pussy cat, What did you there?\n\"I frightened a little mouse Under the chair.\""
+    },
+    {
+      "id": 9,
+      "title": "Five Little Ducks",
+      "text": "Five little ducks went swimming one day\nOver the hill and far away\nMother duck said, \"Quack quack quack quack\"\nAnd only four little ducks came back!\nFour little ducks went swimming one day\nOver the hill and far away\nMother duck said, \"Quack quack quack quack\"\nAnd only three little ducks came back!"
+    },
+    {
+      "id": 10,
+      "title": "Little Jack Horner",
+      "text": "Little Jack Horner\nSat in a corner,\nEating his Christmas pie;\nHe put in his thumb,\nAnd he pulled out a plum,\nAnd said, \"What a good boy am I!\""
+    },
+    {
+      "id": 11,
+      "title": "See Me",
+      "text": "See me skip, see me run,\nI am going to school Like everyone.\nSee me shout, See me wave,\nI am off to school Bye, everyone.\nSee me hug, See me dance,\nI see my friends Hello, everyone!"
+    },
+    {
+      "id": 12,
+      "title": "I Have Two Hands",
+      "text": "I have two arms that swing like this,\nI have two hands that clap like this, Clap, Clap, Clap.\nI have little fingers that wriggle like this, Wriggle, Wriggle, Wriggle.\nI have two legs that jump like this, Jump, Jump, Jump.\nI have two feet that march like this, March, March, March."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+# Environment & Secrets
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Generated Artifacts
+generated_images/
+*.png
+*.jpg
+*.jpeg
+app/data/calibrated_theme_bank.json
+app/data/tuning_report.json
+eval/evaluation_report.json
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
