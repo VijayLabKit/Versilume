@@ -33,25 +33,36 @@ class GeminiProvider(LLMProvider):
 
         try:
             genai.configure(api_key=self.api_key)
-            model = genai.GenerativeModel(
+            models_to_try = [
                 self.model_name,
-                system_instruction=system or None,
-            )
+                "gemini-3.7-flash",
+                "gemini-3.6-flash",
+                "gemini-flash-latest",
+                "gemini-2.5-flash",
+            ]
+            last_err = None
+            for model_id in models_to_try:
+                try:
+                    model = genai.GenerativeModel(model_id, system_instruction=system or None)
 
-            def _call():
-                return model.generate_content(
-                    prompt,
-                    generation_config=genai.types.GenerationConfig(
-                        temperature=temperature,
-                        max_output_tokens=max_tokens,
-                    ),
-                )
+                    def _call():
+                        return model.generate_content(
+                            prompt,
+                            generation_config=genai.types.GenerationConfig(
+                                temperature=temperature,
+                                max_output_tokens=max_tokens,
+                            ),
+                        )
 
-            response = await asyncio.to_thread(_call)
-            text = getattr(response, "text", None)
-            if not text:
-                raise ProviderUnavailableError("Gemini returned an empty response.")
-            return text.strip()
+                    response = await asyncio.to_thread(_call)
+                    text = getattr(response, "text", None)
+                    if text:
+                        return text.strip()
+                except Exception as exc:
+                    last_err = exc
+                    continue
+
+            raise ProviderUnavailableError(f"Gemini request failed on all candidate models: {last_err}")
         except ProviderUnavailableError:
             raise
         except Exception as exc:
