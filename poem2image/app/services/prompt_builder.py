@@ -51,9 +51,10 @@ _STYLE_KEYWORD_MAP: dict[str, str] = {
 def build_image_prompt(
     elements: ExtractedElements,
     style: str | None = None,
+    language: str = "English",
     style_suffix: str = _STYLE_SUFFIX,
 ) -> str:
-    """Build a concrete diffusion prompt from extracted poem elements and agent outputs."""
+    """Build a concrete diffusion prompt with authentic cultural grounding from extracted poem elements and agent outputs."""
     import re
 
     visuals = ", ".join(elements.visual_elements) if elements.visual_elements else "an evocative symbolic scene"
@@ -61,9 +62,18 @@ def build_image_prompt(
     mood_hint = _THEME_MOOD_HINTS.get(elements.theme, "atmospheric, emotionally resonant lighting")
 
     if elements.emotion_nuance:
-        emotion_line = f"Mood: {elements.emotion_nuance}"
+        emotion_line = f"Atmosphere & Mood: {elements.emotion_nuance}"
     else:
         emotion_line = f"Mood: {elements.dominant_emotion}, theme of {theme_clean}"
+
+    # Cultural grounding anchor
+    cultural_parts = []
+    if elements.cultural_context:
+        cultural_parts.append(f"Cultural setting: {elements.cultural_context}.")
+    elif language and language.lower() != "english":
+        cultural_parts.append(
+            f"Authentic {language} regional setting with traditional {language} architecture, clothing, and landscape details."
+        )
 
     style_hint = _STYLE_KEYWORD_MAP.get((style or "").lower().strip(), "")
 
@@ -71,14 +81,15 @@ def build_image_prompt(
     summary_clean = re.sub(r"\s+", " ", summary_clean).rstrip(".")
     summary_part = f"{summary_clean}. " if summary_clean and summary_clean != visuals else ""
 
-    symbol_part = "Key imagery: " + ", ".join(elements.symbols[:4]) + "." if elements.symbols else ""
+    symbol_part = "Key symbolic imagery: " + ", ".join(elements.symbols[:4]) + "." if elements.symbols else ""
     style_cue_part = "; ".join(elements.style_cues[:3]) + "." if elements.style_cues else ""
     palette_part = f"Colour palette: {elements.palette}." if elements.palette else ""
 
     prompt_parts = [
-        f"A breathtaking visual scene featuring {visuals}.",
-        f"{emotion_line}.",
+        f"A breathtaking, vivid artwork depicting {visuals}.",
+        " ".join(cultural_parts),
         summary_part,
+        f"{emotion_line}.",
         symbol_part,
         f"{mood_hint}.",
         palette_part,

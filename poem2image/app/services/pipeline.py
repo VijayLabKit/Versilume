@@ -38,9 +38,11 @@ async def analyze_poem(
 
     translation_result = None
     working_poem = poem
+    lang_name = "English"
     if settings.translation_enabled:
         translation_result = await translate_poem(poem, source_language=source_language)
         working_poem = translation_result.translated_text
+        lang_name = translation_result.source_language_name
 
     if force_single_image:
         line_segments = [[ln for ln in working_poem.splitlines() if ln.strip()]]
@@ -50,8 +52,8 @@ async def analyze_poem(
     results: list[PoemSegment] = []
     for idx, lines in enumerate(line_segments):
         segment_text = "\n".join(lines)
-        elements: ExtractedElements = await extract_elements(segment_text)
-        base_prompt = build_image_prompt(elements, style=style)
+        elements: ExtractedElements = await extract_elements(segment_text, language=lang_name)
+        base_prompt = build_image_prompt(elements, style=style, language=lang_name)
 
         refinement_info = None
         final_prompt = base_prompt

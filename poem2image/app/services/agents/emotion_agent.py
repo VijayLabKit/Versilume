@@ -18,22 +18,22 @@ _EMOTION_LABELS = [
 ]
 
 _SYSTEM_PROMPT = (
-    "You are an expert literary analyst specialising in the emotional register of poetry. "
+    "You are an expert literary analyst specialising in the emotional register and cadence of world poetry. "
     "Respond with valid JSON only."
 )
 
 _USER_PROMPT = """\
-Analyse the emotional register of this poem or poem segment.
+Analyse the emotional register of this {language} poem.
 
 Poem:
 {poem}
 
 Respond with a JSON object with exactly these keys:
 - "emotion": one label from: {labels}
-- "nuance": one sentence (max 20 words) describing the specific emotional tone
+- "nuance": one sentence (max 20 words) describing the specific emotional tone and mood
 - "intensity": float 0.0-1.0
 
-Example: {{"emotion": "melancholy", "nuance": "A quiet ache for a home that can never be returned to.", "intensity": 0.75}}
+Example: {{"emotion": "serenity", "nuance": "A profound, tranquil stillness beside an ancient temple pond.", "intensity": 0.85}}
 
 Respond with ONLY the JSON object."""
 
@@ -46,21 +46,20 @@ class EmotionResult:
     source: str = "agent"
 
 
-async def _call_agent(poem_text: str) -> EmotionResult:
-    settings = get_settings()
-    try:
-        from app.providers.llm_providers import HuggingFaceLLMProvider
-    except ImportError as exc:
-        raise ProviderUnavailableError("HuggingFaceLLMProvider unavailable") from exc
+async def _call_agent(poem_text: str, language: str = "English") -> EmotionResult:
+    from app.providers.registry import get_llm_provider
 
-    provider = HuggingFaceLLMProvider(
-        model_name=settings.emotion_agent_model,
-        api_key=settings.hf_api_token,
-    )
-    prompt = _USER_PROMPT.format(poem=poem_text, labels=", ".join(_EMOTION_LABELS))
+    provider = get_llm_provider()
+    if provider.name == "none":
+        raise ProviderUnavailableError("No LLM provider available")
+
+    settings = get_settings()
+    prompt = _USER_PROMPT.format(poem=poem_text, language=language, labels=", ".join(_EMOTION_LABELS))
     raw = await provider.generate(prompt=prompt, system=_SYSTEM_PROMPT, temperature=0.2, max_tokens=settings.agent_max_tokens)
-    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip())
-    data = json.loads(cleaned)
+    json_match = re.search(r"\{[\s\S]*\}", raw.strip())
+    if not json_match:
+        raise ValueError(f"No JSON object found in response: {raw[:100]!r}")
+    data = json.loads(json_match.group(0))
 
     emotion = str(data.get("emotion", "")).strip().lower()
     if emotion not in _EMOTION_LABELS:
@@ -74,19 +73,21 @@ async def _call_agent(poem_text: str) -> EmotionResult:
     )
 
 
-async def analyse_emotion(poem_text: str) -> EmotionResult:
+async def analyse_emotion(poem_text: str, language: str = "English") -> EmotionResult:
     settings = get_settings()
     if not settings.agents_enabled or not settings.hf_api_token:
         return _heuristic_fallback(poem_text)
 
     try:
-        result = await _call_agent(poem_text)
-        logger.info("EmotionAgent: '%s' (%.2f) source=agent", result.emotion, result.intensity)
+        result = await _call_agent(poem_text, language=language)
+        logger.info("EmotionAgent (%s): '%s' (%.2f) source=agent", language, result.emotion, result.intensity)
         return result
     except ProviderUnavailableError as exc:
         logger.warning("EmotionAgent unavailable (%s); using heuristic.", exc)
     except (json.JSONDecodeError, KeyError, ValueError, Exception) as exc:  # noqa: BLE001
         logger.warning("EmotionAgent parse failed (%s); using heuristic.", exc)
+
+    return _heuristic_fallback(poem_text)
 
     return _heuristic_fallback(poem_text)
 

@@ -10,10 +10,11 @@ from app.providers.registry import get_llm_provider
 logger = logging.getLogger(__name__)
 
 _TRANSLATION_SYSTEM_PROMPT = (
-    "You are an expert literary translator. When translating a poem, you "
-    "preserve its poetic meaning, imagery, rhythm, and cultural context. "
-    "Return ONLY the translated poem text, with no preamble, no explanation, "
-    "and no quotation marks around it."
+    "You are an expert literary translator and cultural poet. When translating a poem, "
+    "preserve its literal and metaphorical visual imagery, emotional cadence, characters, "
+    "and cultural context. "
+    "Return ONLY the translated poem in clear English, with no preamble, no commentary, "
+    "and no quotation marks."
 )
 
 

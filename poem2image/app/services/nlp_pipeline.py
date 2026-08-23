@@ -60,11 +60,17 @@ POETIC_EMOTION_LABELS: list[str] = [
 _CELESTIAL_OR_WONDER_CUES = [
     "star", "twinkle", "wonder", "sky", "moon", "lullaby", "sparkle", "glow",
     "diamond in the sky", "daffodil", "woods", "dream", "stream", "meadow",
-    "lake", "ocean", "peace", "galaxy", "cosmos", "horizon",
+    "lake", "ocean", "peace", "galaxy", "cosmos", "horizon", "pond", "frog",
+    "stillness", "silent", "quiet", "bamboo", "autumn", "zen", "temple", "garden",
+    "blossom", "cherry", "ripples", "stone", "mist", "breeze", "valley", "mountain",
+]
+_DEFIANCE_OR_TRIUMPH_CUES = [
+    "path of fire", "fire", "flames", "oath", "pledge", "swear", "struggle",
+    "unbroken", "never stop", "never yield", "agneepath", "battle", "courage",
+    "brave", "march", "conquer", "victory", "won", "overcame", "stand firm",
 ]
 _GRIEF_CUES = ["mourn", "grave", "funeral", "farewell", "gone forever", "buried", "wept", "tears fell"]
 _NOSTALGIA_CUES = ["remember when", "childhood", "used to", "long ago", "old photograph", "faded memory"]
-_TRIUMPH_CUES = ["victory", "conquered", "at last", "finally free", "overcame", "won"]
 _REVERENCE_CUES = ["sacred", "divine", "prayer", "blessed", "holy", "temple"]
 _DREAD_CUES = ["shadow looms", "creeping dark", "something waits", "unseen threat"]
 
@@ -75,12 +81,12 @@ def _harmonize_emotion(raw_label: str, raw_scores: dict[str, float], text_lower:
     def has_any(cues: list[str]) -> bool:
         return any(c in text_lower for c in cues)
 
+    if has_any(_DEFIANCE_OR_TRIUMPH_CUES):
+        return "defiance", 0.9
     if has_any(_GRIEF_CUES):
         return "grief", 0.9
     if has_any(_REVERENCE_CUES):
         return "reverence", 0.85
-    if has_any(_TRIUMPH_CUES):
-        return "triumph", 0.85
     if has_any(_NOSTALGIA_CUES):
         return "nostalgia", 0.85
     if has_any(_DREAD_CUES) and raw_label in ("fear", "anger", "disgust"):
@@ -187,24 +193,14 @@ def _get_spacy_nlp():
 
 
 def summarize(text: str) -> str:
-    """Summarize long text using BART."""
+    """Extract or summarize key lines from the poem text."""
     text_clean = text.strip()
     if not text_clean:
         return ""
-
-    settings = get_settings()
-    word_count = len(text_clean.split())
-    if word_count <= 12:
-        return text_clean
-
-    try:
-        summarizer = _get_summarizer()
-        max_len = min(settings.max_words_per_summary, max(12, word_count // 2))
-        result = summarizer(text, max_length=max_len, min_length=min(8, max_len - 1), do_sample=False)
-        return result[0]["summary_text"].strip()
-    except Exception as exc:
-        logger.warning("Summarizer model fallback triggered: %s", exc)
-        return text_clean[:200]
+    lines = [ln.strip() for ln in text_clean.splitlines() if ln.strip()]
+    if len(lines) <= 2:
+        return " ".join(lines)
+    return " ".join(lines[:2])
 
 
 def classify_emotion_heuristic(text: str) -> tuple[str, dict[str, float]]:
@@ -302,7 +298,7 @@ def extract_visual_elements_heuristic(text: str, max_elements: int = 6) -> List[
 extract_visual_elements = extract_visual_elements_heuristic
 
 
-async def extract_elements(text: str) -> "ExtractedElements":
+async def extract_elements(text: str, language: str = "English") -> "ExtractedElements":
     """
     Full extraction pipeline for one segment.
     Runs local heuristics first, then fires all 3 agents concurrently.
@@ -317,8 +313,8 @@ async def extract_elements(text: str) -> "ExtractedElements":
     heuristic_theme, theme_score = assign_theme(text)
     heuristic_visuals = extract_visual_elements_heuristic(text)
 
-    # ── Step 2: run agents concurrently ───────────────────────────────────
-    agent_result = await run_agents(text)
+    # ── Step 2: run agents concurrently with language context ─────────────
+    agent_result = await run_agents(text, language=language)
 
     # ── Step 3: merge — agent wins per-field if it ran successfully ────────
     final_emotion = agent_result.emotion

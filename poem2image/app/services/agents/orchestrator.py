@@ -44,14 +44,14 @@ class AgentResult:
         return used
 
 
-async def run_agents(poem_text: str) -> AgentResult:
-    """Run all three agents concurrently. Each agent handles its own fallback."""
-    logger.info("Running 3 agents on %d-char segment.", len(poem_text))
+async def run_agents(poem_text: str, language: str = "English") -> AgentResult:
+    """Run all three agents concurrently with language context. Each agent handles its own fallback."""
+    logger.info("Running 3 agents on %d-char segment (language=%s).", len(poem_text), language)
 
     results = await asyncio.gather(
-        analyse_emotion(poem_text),
-        analyse_semantics(poem_text),
-        analyse_metaphors(poem_text),
+        analyse_emotion(poem_text, language=language),
+        analyse_semantics(poem_text, language=language),
+        analyse_metaphors(poem_text, language=language),
         return_exceptions=True,
     )
 

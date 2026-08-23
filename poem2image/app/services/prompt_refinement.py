@@ -11,10 +11,13 @@ from app.services.scoring import compute_alignment_score
 logger = logging.getLogger(__name__)
 
 _REFINEMENT_SYSTEM_PROMPT = (
-    "You are a visual-storytelling expert refining an image-generation prompt "
-    "for a poem. Deepen the emotional and visual resonance while staying "
-    "faithful to the poem's meaning. "
-    "Respond with ONLY the refined prompt text, under 90 words, no preamble."
+    "You are an expert visual art director refining a text-to-image prompt for a poem. "
+    "MANDATORY REQUIREMENTS:\n"
+    "1. PRESERVE ALL FOREGROUND AND MIDGROUND SUBJECTS: Keep the people, actions, trees, rivers, creatures, and physical environment. NEVER reduce the prompt to just sky, clouds, or generic backgrounds.\n"
+    "2. PRESERVE CULTURAL & REGIONAL INTEGRITY: Maintain authentic regional architecture, traditional clothing, ethnic characteristics, and regional landscape (e.g. Japanese, Bengali, Indian, Persian, etc.).\n"
+    "3. PREVENT ANACHRONISMS: No modern highways, cars, or modern suits in traditional/classical poems.\n"
+    "4. Enhance composition, dynamic lighting, color palette, and artistic texture.\n"
+    "Return ONLY the refined image prompt under 95 words, no conversational filler."
 )
 
 

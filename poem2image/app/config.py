@@ -31,12 +31,12 @@ class Settings(BaseSettings):
     sentence_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     spacy_model: str = "en_core_web_sm"
 
-    # Three specialised agents via HF Inference API
+    # Multi-Agent Configuration (Emotion, Semantic, Metaphor)
     agents_enabled: bool = True
-    emotion_agent_model: str = "meta-llama/Llama-3.2-3B-Instruct"
-    semantic_agent_model: str = "meta-llama/Llama-3.2-3B-Instruct"
-    metaphor_agent_model: str = "meta-llama/Llama-3.2-3B-Instruct"
-    agent_max_tokens: int = 350
+    emotion_agent_model: str = "meta-llama/Llama-3.1-8B-Instruct"
+    semantic_agent_model: str = "meta-llama/Llama-3.1-8B-Instruct"
+    metaphor_agent_model: str = "meta-llama/Llama-3.1-8B-Instruct"
+    agent_max_tokens: int = 450
 
     # Optional: path to a calibrated theme bank JSON file
     theme_bank_path: str = ""

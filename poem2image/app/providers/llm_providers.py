@@ -37,8 +37,9 @@ class GeminiProvider(LLMProvider):
                 self.model_name,
                 "gemini-3.7-flash",
                 "gemini-3.6-flash",
+                "gemini-3.5-flash",
+                "gemini-3.5-flash-lite",
                 "gemini-flash-latest",
-                "gemini-2.5-flash",
             ]
             last_err = None
             for model_id in models_to_try:
@@ -62,11 +63,22 @@ class GeminiProvider(LLMProvider):
                     last_err = exc
                     continue
 
-            raise ProviderUnavailableError(f"Gemini request failed on all candidate models: {last_err}")
+            # Fallback to HuggingFace Llama if Gemini hits quota/rate-limits
+            settings = get_settings()
+            if settings.hf_api_token:
+                logger.info("Gemini quota/unavailable; using HuggingFace Llama-3.1 fallback for text generation.")
+                hf_fb = HuggingFaceLLMProvider(model_name="meta-llama/Llama-3.1-8B-Instruct", api_key=settings.hf_api_token)
+                return await hf_fb.generate(prompt=prompt, system=system, temperature=temperature, max_tokens=max_tokens)
+
+            raise ProviderUnavailableError(f"Gemini request failed: {last_err}")
         except ProviderUnavailableError:
             raise
         except Exception as exc:
             logger.warning("Gemini call failed: %s", exc)
+            settings = get_settings()
+            if settings.hf_api_token:
+                hf_fb = HuggingFaceLLMProvider(model_name="meta-llama/Llama-3.1-8B-Instruct", api_key=settings.hf_api_token)
+                return await hf_fb.generate(prompt=prompt, system=system, temperature=temperature, max_tokens=max_tokens)
             raise ProviderUnavailableError(f"Gemini request failed: {exc}") from exc
 
 

@@ -12,25 +12,26 @@ from app.providers.base import ProviderUnavailableError
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = (
-    "You are a visual storytelling expert who translates poetry into concrete paintable imagery. "
-    "Resolve ALL metaphors into their literal visual equivalent. "
+    "You are an expert visual director and cultural ethnographer translating world poetry into vivid, "
+    "concrete, paintable imagery. Resolve ALL abstract metaphors into literal, tangible physical scenes. "
     "Respond with valid JSON only."
 )
 
 _USER_PROMPT = """\
-Read this poem and translate it into paintable visual imagery.
+Translate this {language} poem into paintable, evocative visual imagery.
 
 Poem:
 {poem}
 
-Respond with a JSON object with exactly these keys:
-- "visuals": array of 3-6 short concrete visual phrases (resolve ALL metaphors into literal scenes)
-- "style_cues": array of 2-3 composition/lighting cues (e.g. "golden hour side-lighting")
-- "palette": one string describing the dominant colour palette
+CRITICAL RULES:
+1. "visuals": Array of 3-6 concrete visual elements (who is in the scene, what are they doing, what is the environment, what are the key physical objects).
+2. CULTURAL & REGIONAL GROUNDING: If the poem is in {language} (e.g. Japanese, Bengali, Hindi, Persian, Spanish, French, Chinese, Arabic, etc.), ALL human figures, clothing, houses/architecture, flora, and landscape MUST authentically reflect {language} regional heritage (e.g., traditional Japanese wooden structures, tatami, kimonos, stone lanterns; or rural Bengal village paths, monsoon greenery, cotton kurtas/dhotis; or Indian fire-lit paths and banyan trees; or classical European stone buildings).
+3. NO modern anachronisms (NO modern paved highways, NO modern cars or Western suits unless specifically written in the poem).
+4. "style_cues": Array of 2-3 composition/lighting cues (e.g., "dramatic firelight illumination", "wide-angle misty riverbank composition").
+5. "palette": One string with the dominant color palette.
 
-Example: {{"visuals": ["a glowing star in dark sky", "child lying in grass gazing upward"], "style_cues": ["soft ambient lighting", "low-angle upward composition"], "palette": "midnight blue and silver starlight"}}
-
-Respond with ONLY the JSON object."""
+Respond with ONLY this JSON format:
+{{"visuals": ["...", "..."], "style_cues": ["...", "..."], "palette": "..."}}"""
 
 
 @dataclass
@@ -41,25 +42,24 @@ class MetaphorResult:
     source: str = "agent"
 
 
-async def _call_agent(poem_text: str) -> MetaphorResult:
-    settings = get_settings()
-    try:
-        from app.providers.llm_providers import HuggingFaceLLMProvider
-    except ImportError as exc:
-        raise ProviderUnavailableError("HuggingFaceLLMProvider unavailable") from exc
+async def _call_agent(poem_text: str, language: str = "English") -> MetaphorResult:
+    from app.providers.registry import get_llm_provider
 
-    provider = HuggingFaceLLMProvider(
-        model_name=settings.metaphor_agent_model,
-        api_key=settings.hf_api_token,
-    )
+    provider = get_llm_provider()
+    if provider.name == "none":
+        raise ProviderUnavailableError("No LLM provider available")
+
+    settings = get_settings()
     raw = await provider.generate(
-        prompt=_USER_PROMPT.format(poem=poem_text),
+        prompt=_USER_PROMPT.format(poem=poem_text, language=language),
         system=_SYSTEM_PROMPT,
-        temperature=0.5,
+        temperature=0.4,
         max_tokens=settings.agent_max_tokens,
     )
-    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip())
-    data = json.loads(cleaned)
+    json_match = re.search(r"\{[\s\S]*\}", raw.strip())
+    if not json_match:
+        raise ValueError(f"No JSON object found in response: {raw[:100]!r}")
+    data = json.loads(json_match.group(0))
 
     visuals = [str(v).strip() for v in data.get("visuals", []) if v][:6]
     style_cues = [str(s).strip() for s in data.get("style_cues", []) if s][:3]
@@ -75,19 +75,21 @@ async def _call_agent(poem_text: str) -> MetaphorResult:
     )
 
 
-async def analyse_metaphors(poem_text: str) -> MetaphorResult:
+async def analyse_metaphors(poem_text: str, language: str = "English") -> MetaphorResult:
     settings = get_settings()
     if not settings.agents_enabled or not settings.hf_api_token:
         return _heuristic_fallback(poem_text)
 
     try:
-        result = await _call_agent(poem_text)
-        logger.info("MetaphorAgent: %d visuals, %d style_cues, source=agent", len(result.visuals), len(result.style_cues))
+        result = await _call_agent(poem_text, language=language)
+        logger.info("MetaphorAgent (%s): %d visuals, %d style_cues, source=agent", language, len(result.visuals), len(result.style_cues))
         return result
     except ProviderUnavailableError as exc:
         logger.warning("MetaphorAgent unavailable (%s); using heuristic.", exc)
     except (json.JSONDecodeError, KeyError, ValueError, Exception) as exc:  # noqa: BLE001
         logger.warning("MetaphorAgent parse failed (%s); using heuristic.", exc)
+
+    return _heuristic_fallback(poem_text)
 
     return _heuristic_fallback(poem_text)
 

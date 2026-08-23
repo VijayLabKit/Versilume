@@ -25,22 +25,22 @@ _THEME_KEYS = [
 ]
 
 _SYSTEM_PROMPT = (
-    "You are a literary scholar with expertise in world poetry and symbolism. "
-    "Respond with valid JSON only."
+    "You are a literary scholar and cultural ethnographer with expertise in world poetry, symbolism, "
+    "and regional heritage. Respond with valid JSON only."
 )
 
 _USER_PROMPT = """\
-Perform a semantic analysis of this poem or poem segment.
+Perform a deep semantic and cultural analysis of this {language} poem.
 
 Poem:
 {poem}
 
 Respond with a JSON object with exactly these keys:
 - "theme": one key from: {themes}
-- "symbols": array of 2-5 short strings naming key symbolic images
-- "cultural_context": one sentence (max 25 words) on the literary or cultural tradition
+- "symbols": array of 2-5 short strings naming key symbolic visual objects or metaphors
+- "cultural_context": one vivid sentence (max 25 words) describing the authentic {language} cultural, regional, or historical setting
 
-Example: {{"theme": "melancholy_and_longing", "symbols": ["fading rose", "empty chair"], "cultural_context": "Romantic-era European lyric poetry."}}
+Example for Bengali poem: {{"theme": "joy_and_celebration", "symbols": ["sunlit rain clouds", "green monsoon meadows", "free children"], "cultural_context": "Rural Bengal monsoon landscape with joyful children in traditional cotton clothing."}}
 
 Respond with ONLY the JSON object."""
 
@@ -53,21 +53,20 @@ class SemanticResult:
     source: str = "agent"
 
 
-async def _call_agent(poem_text: str) -> SemanticResult:
-    settings = get_settings()
-    try:
-        from app.providers.llm_providers import HuggingFaceLLMProvider
-    except ImportError as exc:
-        raise ProviderUnavailableError("HuggingFaceLLMProvider unavailable") from exc
+async def _call_agent(poem_text: str, language: str = "English") -> SemanticResult:
+    from app.providers.registry import get_llm_provider
 
-    provider = HuggingFaceLLMProvider(
-        model_name=settings.semantic_agent_model,
-        api_key=settings.hf_api_token,
-    )
-    prompt = _USER_PROMPT.format(poem=poem_text, themes=", ".join(_THEME_KEYS))
+    provider = get_llm_provider()
+    if provider.name == "none":
+        raise ProviderUnavailableError("No LLM provider available")
+
+    settings = get_settings()
+    prompt = _USER_PROMPT.format(poem=poem_text, language=language, themes=", ".join(_THEME_KEYS))
     raw = await provider.generate(prompt=prompt, system=_SYSTEM_PROMPT, temperature=0.3, max_tokens=settings.agent_max_tokens)
-    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip())
-    data = json.loads(cleaned)
+    json_match = re.search(r"\{[\s\S]*\}", raw.strip())
+    if not json_match:
+        raise ValueError(f"No JSON object found in response: {raw[:100]!r}")
+    data = json.loads(json_match.group(0))
 
     theme = str(data.get("theme", "")).strip().lower().replace(" ", "_")
     if theme not in _THEME_KEYS:
@@ -86,14 +85,14 @@ async def _call_agent(poem_text: str) -> SemanticResult:
     )
 
 
-async def analyse_semantics(poem_text: str) -> SemanticResult:
+async def analyse_semantics(poem_text: str, language: str = "English") -> SemanticResult:
     settings = get_settings()
     if not settings.agents_enabled or not settings.hf_api_token:
         return _heuristic_fallback(poem_text)
 
     try:
-        result = await _call_agent(poem_text)
-        logger.info("SemanticAgent: theme='%s', %d symbols, source=agent", result.theme, len(result.symbols))
+        result = await _call_agent(poem_text, language=language)
+        logger.info("SemanticAgent (%s): theme='%s', %d symbols, source=agent", language, result.theme, len(result.symbols))
         return result
     except ProviderUnavailableError as exc:
         logger.warning("SemanticAgent unavailable (%s); using heuristic.", exc)
