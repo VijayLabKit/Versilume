@@ -3,1333 +3,1231 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#14121f">
-<title>Versilume — Turn your poem into art</title>
+<meta name="theme-color" content="#0d0b14">
+<title>Versilume — AI Poem to Art Synthesis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500;1,6..72,600&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ink:            #14121f;
-    --ink-panel:      #1d1a2b;
-    --ink-panel-2:    #241f38;
-    --parchment:      #ede3cb;
-    --parchment-dim:  #d9cdac;
-    --gold:           #cda434;
-    --gold-bright:    #e8c565;
-    --lilac:          #a68fd4;
-    --lilac-dim:      #7c6ba0;
-    --rose:           #c98a9c;
-    --teal:           #6fae9e;
-    --text-hi:        #f4efe0;
-    --text-mid:       #b9b3c9;
-    --text-low:       #7d768f;
-    --danger:         #d47a6a;
-
-    --display: 'Newsreader', serif;
-    --body:    'Work Sans', sans-serif;
-    --mono:    'JetBrains Mono', monospace;
-
-    --radius: 2px;
-    --ease: cubic-bezier(.22,.61,.36,1);
+  :root {
+    --bg-base: #0c0a13;
+    --bg-surface: #141220;
+    --bg-card: rgba(26, 23, 40, 0.75);
+    --bg-card-hover: rgba(35, 30, 54, 0.85);
+    --border-subtle: rgba(214, 180, 100, 0.12);
+    --border-glow: rgba(232, 197, 101, 0.35);
+    --gold: #d4af37;
+    --gold-light: #f3d078;
+    --gold-gradient: linear-gradient(135deg, #f5d77f 0%, #d4af37 50%, #aa8010 100%);
+    --purple-accent: #8b6cc7;
+    --purple-glow: rgba(139, 108, 199, 0.25);
+    --text-main: #f5f3ef;
+    --text-muted: #a39eb3;
+    --text-dim: #6e6782;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
-  html, body{ max-width:100%; overflow-x:hidden; }
-  body{
-    background:var(--ink);
-    color:var(--text-hi);
-    font-family:var(--body);
-    line-height:1.5;
-    background-image:
-      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(166,143,212,.10), transparent 60%),
-      radial-gradient(ellipse 700px 600px at 100% 20%, rgba(205,164,52,.08), transparent 55%),
-      radial-gradient(ellipse 800px 500px at 50% 110%, rgba(111,174,158,.06), transparent 60%);
-  }
-  img, svg{ max-width:100%; }
-
-  @media (prefers-reduced-motion: reduce){
-    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 18% 12%, rgba(139, 108, 199, 0.14) 0%, transparent 45%),
+      radial-gradient(circle at 82% 25%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 50% 85%, rgba(90, 60, 140, 0.1) 0%, transparent 50%);
+    min-height: 100vh;
   }
 
-  a{ color:inherit; }
-  ::selection{ background:var(--gold); color:var(--ink); }
-  :focus-visible{ outline:2px solid var(--gold-bright); outline-offset:3px; }
+  a { text-decoration: none !important; color: inherit; }
+  button { font-family: inherit; }
 
-  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; position:relative; }
-  @media (max-width:640px){ .wrap{ padding:0 20px; } }
-  @media (max-width:400px){ .wrap{ padding:0 16px; } }
-
-  /* ================= ambient graphics layers ================= */
-  #particles{
-    position:fixed; inset:0; z-index:-1; pointer-events:none; display:block;
-  }
-  .grain-overlay{
-    position:fixed; inset:0; z-index:5; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  }
-  #cursorGlow{
-    position:fixed; top:0; left:0; width:340px; height:340px; z-index:4; pointer-events:none;
-    border-radius:50%; transform:translate(-50%,-50%);
-    background:radial-gradient(circle, rgba(205,164,52,.10), transparent 70%);
-    opacity:0; transition:opacity .4s var(--ease);
-    will-change:transform;
-  }
-  #scrollProgress{
-    position:fixed; top:0; left:0; height:2.5px; width:0%;
-    background:linear-gradient(90deg, var(--lilac), var(--gold-bright));
-    z-index:120; transition:width .1s linear;
-  }
-  #introSplash{
-    position:fixed; inset:0; z-index:500; background:var(--ink);
-    display:flex; align-items:center; justify-content:center;
-    transition:opacity .5s var(--ease);
-  }
-  #introSplash svg{ width:64px; height:64px; animation:splashPulse 1.1s var(--ease) infinite; }
-  @keyframes splashPulse{ 0%,100%{ transform:scale(1); opacity:.7;} 50%{ transform:scale(1.15); opacity:1;} }
-  #introSplash.hide{ opacity:0; pointer-events:none; }
-
-  /* reveal-on-scroll */
-  .reveal{ opacity:0; transform:translateY(22px); transition:opacity .7s var(--ease), transform .7s var(--ease); }
-  .reveal.in-view{ opacity:1; transform:translateY(0); }
-
-  /* ---------- header ---------- */
-  header{
-    position:sticky; top:0; z-index:50;
-    background:rgba(20,18,31,.82);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid rgba(205,164,52,.15);
-  }
-  .nav{ display:flex; align-items:center; justify-content:space-between; padding:18px 0; }
-  .brand{
-    display:flex; align-items:center; gap:12px;
-    font-family:var(--display); font-style:italic; font-weight:500;
-    font-size:1.35rem; letter-spacing:.01em; text-decoration:none;
-  }
-  .brand-mark{ width:26px; height:26px; flex-shrink:0; }
-  .nav-links{ display:flex; gap:36px; list-style:none; }
-  .nav-links a{ text-decoration:none; color:var(--text-mid); font-size:.92rem; letter-spacing:.02em; transition:color .25s var(--ease); }
-  .nav-links a:hover{ color:var(--gold-bright); }
-  .nav-toggle{
-    display:none; background:none; border:1px solid rgba(244,239,224,.2); border-radius:6px;
-    width:40px; height:40px; align-items:center; justify-content:center;
-    color:var(--text-hi); font-size:1.15rem; cursor:pointer;
-  }
-  @media (max-width:760px){
-    .nav-toggle{ display:flex; }
-    .nav{ position:relative; }
-    .nav-links{
-      display:flex; flex-direction:column; gap:0;
-      position:absolute; top:calc(100% + 1px); left:0; right:0;
-      background:rgba(20,18,31,.98); backdrop-filter:blur(10px);
-      border-bottom:1px solid rgba(205,164,52,.15);
-      max-height:0; overflow:hidden; opacity:0;
-      transition:max-height .3s var(--ease), opacity .25s var(--ease);
-    }
-    .nav-links.open{ max-height:280px; opacity:1; }
-    .nav-links li{ border-top:1px solid rgba(244,239,224,.06); }
-    .nav-links a{ display:block; padding:16px 20px; font-size:1rem; }
-  }
-  @media (max-width:400px){ .brand{ font-size:1.15rem; } .brand-mark{ width:22px; height:22px; } }
-
-  /* ---------- hero ---------- */
-  .hero{
-    padding:96px 0 100px;
-    display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center;
-    position:relative;
-  }
-  @media (max-width:900px){
-    .hero{ grid-template-columns:1fr; padding:56px 0 60px; gap:36px; }
-    .hero-art{ order:-1; max-width:280px; margin:0 auto; }
-  }
-  @media (max-width:480px){
-    .hero{ padding:44px 0 44px; }
-    .hero-art{ max-width:210px; }
-    .hero-cta{ flex-direction:column; align-items:stretch; }
-    .hero-cta .btn{ justify-content:center; }
+  /* Background Ambient Canvas */
+  #ambientCanvas {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.6;
   }
 
-  .eyebrow{
-    font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase;
-    color:var(--lilac); display:flex; align-items:center; gap:10px; margin-bottom:22px;
-  }
-  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--lilac-dim); }
-  h1{
-    font-family:var(--display); font-weight:500; font-size:clamp(2.4rem, 5vw, 4.1rem);
-    line-height:1.07; letter-spacing:-.01em; color:var(--text-hi);
-  }
-  h1 em{ font-style:italic; color:var(--gold-bright); font-weight:500; }
-  .hero p.lede{ margin-top:22px; max-width:48ch; color:var(--text-mid); font-size:1.08rem; line-height:1.65; }
-  .hero-cta{ display:flex; gap:16px; margin-top:34px; flex-wrap:wrap; }
-  .hero-meta{ display:flex; gap:26px; margin-top:40px; flex-wrap:wrap; }
-  .hero-meta div{ display:flex; align-items:center; gap:9px; font-size:.85rem; color:var(--text-mid); }
-  .hero-meta svg{ width:17px; height:17px; color:var(--gold); flex-shrink:0; }
-
-  .btn{
-    font-family:var(--body); font-weight:600; font-size:.94rem;
-    padding:14px 26px; border-radius:var(--radius); cursor:pointer;
-    border:1px solid transparent; letter-spacing:.01em;
-    transition:transform .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease), border-color .2s var(--ease), opacity .2s var(--ease);
-    display:inline-flex; align-items:center; gap:9px;
-  }
-  .btn-gold{ background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#1b1608; }
-  .btn-gold:hover{ transform:translateY(-2px); box-shadow:0 10px 26px -8px rgba(205,164,52,.55); }
-  .btn-ghost{ background:transparent; border-color:rgba(244,239,224,.22); color:var(--text-hi); }
-  .btn-ghost:hover{ border-color:var(--lilac); color:var(--lilac); }
-  .btn-small{ padding:9px 16px; font-size:.8rem; }
-  .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
-
-  /* ---------- hero illustration (layered, parallax) ---------- */
-  .hero-art{ position:relative; aspect-ratio:1/1; }
-  .hero-art .layer{ position:absolute; inset:0; transition:transform .15s linear; }
-  .bloom-ring{ fill:none; stroke:rgba(166,143,212,.22); stroke-width:1; }
-  .bloom-blob{
-    fill:url(#bloomGrad); transform-origin:center;
-    animation:bloomPulse 8s ease-in-out infinite;
-    filter:drop-shadow(0 0 34px rgba(205,164,52,.25));
-  }
-  @keyframes bloomPulse{ 0%,100%{ transform:scale(1) rotate(0deg);} 50%{ transform:scale(1.045) rotate(3deg);} }
-  .bloom-dot{ fill:var(--gold-bright); opacity:.85; }
-  .quill-path{ stroke:var(--parchment-dim); stroke-width:1.4; fill:none; opacity:.65; }
-  .ink-drop{ fill:var(--lilac); opacity:.55; }
-  .star{ fill:var(--gold-bright); opacity:.7; animation:twinkle 3.5s ease-in-out infinite; }
-  .star:nth-child(2){ animation-delay:.7s; }
-  .star:nth-child(3){ animation-delay:1.4s; }
-  @keyframes twinkle{ 0%,100%{ opacity:.25;} 50%{ opacity:.9;} }
-
-  /* ---------- section shell ---------- */
-  section{ padding:104px 0; position:relative; }
-  @media (max-width:760px){ section{ padding:66px 0; } }
-  @media (max-width:480px){ section{ padding:50px 0; } }
-  .section-head{ max-width:640px; margin-bottom:52px; }
-  .section-head .eyebrow{ margin-bottom:16px; }
-  h2{ font-family:var(--display); font-weight:500; font-size:clamp(1.9rem,3.4vw,2.6rem); letter-spacing:-.01em; }
-  .section-head p{ color:var(--text-mid); margin-top:14px; font-size:1.02rem; max-width:52ch; }
-  hr.divider{ border:0; height:1px; background:linear-gradient(90deg, transparent, rgba(205,164,52,.35), transparent); }
-
-  /* ---------- feature cards (why section) ---------- */
-  .feature-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(244,239,224,.08); border-radius:var(--radius); overflow:hidden; }
-  @media (max-width:760px){ .feature-grid{ grid-template-columns:1fr; } }
-  .feature-card{ background:var(--ink-panel); padding:32px 28px; transition:background .25s var(--ease); }
-  .feature-card:hover{ background:var(--ink-panel-2); }
-  .feature-icon{
-    width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    background:rgba(205,164,52,.12); color:var(--gold-bright); margin-bottom:18px;
-  }
-  .feature-icon svg{ width:20px; height:20px; }
-  .feature-card h3{ font-family:var(--display); font-weight:500; font-size:1.2rem; margin-bottom:8px; }
-  .feature-card p{ color:var(--text-mid); font-size:.92rem; line-height:1.6; }
-
-  /* ---------- compose ---------- */
-  .compose-grid{ display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; }
-  @media (max-width:900px){ .compose-grid{ grid-template-columns:1fr; gap:32px; } }
-
-  .examples-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
-  .example-chip{
-    font-family:var(--mono); font-size:.74rem; padding:8px 13px; border-radius:6px;
-    border:1px solid rgba(166,143,212,.3); background:rgba(166,143,212,.06); color:var(--lilac);
-    cursor:pointer; transition:all .2s var(--ease);
-  }
-  .example-chip:hover{ background:rgba(166,143,212,.16); border-color:var(--lilac); color:var(--text-hi); }
-  .example-chip.surprise{ border-color:rgba(205,164,52,.35); background:rgba(205,164,52,.07); color:var(--gold-bright); }
-  .example-chip.surprise:hover{ background:rgba(205,164,52,.16); }
-
-  .page{
-    background:var(--parchment); color:#241f1a; border-radius:var(--radius);
-    padding:34px 34px 26px; position:relative;
-    box-shadow:0 30px 60px -30px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.15) inset;
-  }
-  @media (max-width:480px){ .page{ padding:24px 20px 18px; } }
-  .page::before, .page::after{ content:''; position:absolute; width:22px; height:22px; border:2px solid var(--gold); opacity:.7; }
-  .page::before{ top:10px; left:10px; border-right:0; border-bottom:0; }
-  .page::after{ bottom:10px; right:10px; border-left:0; border-top:0; }
-  .page-label{
-    font-family:var(--mono); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase;
-    color:#8a7a4f; margin-bottom:14px; display:flex; justify-content:space-between;
-  }
-  #poemInput{
-    width:100%; min-height:230px; resize:vertical; background:transparent; border:none; outline:none;
-    font-family:var(--display); font-style:italic; font-size:1.26rem; line-height:1.75; color:#241f1a;
-    background-image:repeating-linear-gradient(transparent, transparent 42px, rgba(36,31,26,.14) 43px);
-  }
-  #poemInput::placeholder{ color:#8a7a5f; opacity:.75; }
-  @media (max-width:480px){
-    #poemInput{ min-height:190px; font-size:1.05rem; line-height:1.6; background-image:repeating-linear-gradient(transparent, transparent 36px, rgba(36,31,26,.14) 37px); }
-  }
-  .page-foot{
-    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;
-    margin-top:14px; padding-top:14px; border-top:1px dashed rgba(36,31,26,.25);
-    font-family:var(--mono); font-size:.74rem; color:#6d6046;
-  }
-  .page-foot .stat-warn{ color:var(--danger); }
-
-  /* mood reading pill */
-  .mood-pill{
-    display:inline-flex; align-items:center; gap:8px; padding:5px 12px 5px 8px;
-    border-radius:999px; background:rgba(36,31,26,.08); border:1px solid rgba(36,31,26,.18);
-  }
-  .mood-dot{ width:8px; height:8px; border-radius:50%; background:#8a7a5f; transition:background .3s var(--ease); flex-shrink:0; }
-  .mood-pill[data-mood="Joyful"] .mood-dot{ background:#b8860b; }
-  .mood-pill[data-mood="Melancholy"] .mood-dot{ background:var(--lilac-dim); }
-  .mood-pill[data-mood="Romantic"] .mood-dot{ background:#a4576b; }
-  .mood-pill[data-mood="Mysterious"] .mood-dot{ background:#5b4d82; }
-  .mood-pill[data-mood="Serene"] .mood-dot{ background:#3f7d6c; }
-  .mood-pill[data-mood="Turbulent"] .mood-dot{ background:var(--danger); }
-
-  /* style chips w/ swatches */
-  .field-label{ font-family:var(--mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--text-low); margin:24px 0 12px; }
-  .chips{ display:flex; flex-wrap:wrap; gap:9px; }
-  .chip{
-    font-family:var(--body); font-size:.86rem; padding:8px 16px 8px 8px; min-height:40px;
-    border-radius:999px; border:1px solid rgba(244,239,224,.2); background:transparent; color:var(--text-mid);
-    cursor:pointer; transition:all .2s var(--ease); display:inline-flex; align-items:center; gap:9px;
-  }
-  .chip:hover{ border-color:var(--lilac); color:var(--text-hi); }
-  .chip.active{ background:var(--lilac); border-color:var(--lilac); color:var(--ink); font-weight:600; }
-  .swatch{ width:18px; height:18px; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 1px rgba(255,255,255,.15) inset; }
-  .swatch-watercolor{ background:linear-gradient(135deg,#7fb8d8,#e8c565); }
-  .swatch-oil-painting{ background:linear-gradient(135deg,#8a3b2b,#cda434); }
-  .swatch-ink-sketch{ background:linear-gradient(135deg,#2a2733,#b9b3c9); }
-  .swatch-photorealistic{ background:linear-gradient(135deg,#3c4a5c,#d9cdac); }
-  .swatch-surreal{ background:linear-gradient(135deg,#a68fd4,#c98a9c); }
-  .swatch-ukiyo-e{ background:linear-gradient(135deg,#3f7d6c,#e8c565); }
-
-  .count-row{ display:flex; align-items:center; gap:14px; margin-top:8px; }
-  .count-btn{
-    width:40px; height:40px; border-radius:50%; border:1px solid rgba(244,239,224,.25); background:transparent;
-    color:var(--text-hi); font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
-    flex-shrink:0; transition:border-color .2s var(--ease), color .2s var(--ease);
-  }
-  .count-btn:hover{ border-color:var(--gold); color:var(--gold-bright); }
-  .count-val{ font-family:var(--mono); font-size:1rem; min-width:16px; text-align:center; }
-
-  .generate-row{ margin-top:32px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
-  .hint{ font-size:.82rem; color:var(--text-low); }
-  kbd{ font-family:var(--mono); font-size:.72rem; background:rgba(244,239,224,.08); border:1px solid rgba(244,239,224,.18); border-radius:4px; padding:1px 6px; }
-  @media (max-width:480px){
-    .generate-row{ flex-direction:column; align-items:stretch; gap:12px; }
-    .generate-row .btn{ width:100%; justify-content:center; }
-    .hint{ text-align:center; }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
   }
 
-  /* ---------- output panel ---------- */
-  .output{ background:var(--ink-panel); border:1px solid rgba(205,164,52,.14); border-radius:var(--radius); min-height:480px; padding:34px; display:flex; flex-direction:column; }
-  @media (max-width:480px){ .output{ padding:22px; min-height:340px; } }
-  .output-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
-  .output-head .field-label{ margin:0; }
-  .output-toolbar{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
-  .icon-btn{
-    display:inline-flex; align-items:center; gap:7px; font-family:var(--body); font-size:.8rem;
-    padding:8px 13px; border-radius:6px; border:1px solid rgba(244,239,224,.18); background:transparent;
-    color:var(--text-mid); cursor:pointer; transition:all .2s var(--ease);
+  /* Header & Navigation */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(12, 10, 19, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border-subtle);
   }
-  .icon-btn:hover{ border-color:var(--lilac); color:var(--text-hi); }
-  .icon-btn svg{ width:14px; height:14px; }
-  .output-body{ flex:1; display:flex; align-items:center; justify-content:center; text-align:center; }
-  .empty-state{ color:var(--text-low); }
-  .empty-state svg{ width:60px; height:60px; margin-bottom:18px; opacity:.5; }
-  .empty-state p{ font-family:var(--display); font-style:italic; font-size:1.1rem; color:var(--text-mid); }
+  .nav-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 70px;
+  }
+  .brand-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #fff;
+  }
+  .brand-logo span {
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, rgba(232,197,101,0.2), rgba(139,108,199,0.3));
+    border: 1px solid var(--border-glow);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold-light);
+  }
+  .nav-menu {
+    display: flex; align-items: center; gap: 28px; list-style: none;
+  }
+  .nav-link {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: color 0.2s var(--ease);
+  }
+  .nav-link:hover { color: var(--gold-light); }
 
-  .loading-state{ display:flex; flex-direction:column; align-items:center; gap:20px; }
-  .ink-loader{ width:90px; height:90px; }
-  .ink-loader circle{
-    fill:none; stroke:var(--gold-bright); stroke-width:2.5; stroke-linecap:round;
-    stroke-dasharray:230; stroke-dashoffset:60; animation:inkSpin 1.6s linear infinite; transform-origin:center;
+  /* Pill Badges (replaces ugly text dashes) */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 13px;
+    background: rgba(212, 175, 55, 0.09);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 14px;
+    backdrop-filter: blur(8px);
   }
-  @keyframes inkSpin{ to{ transform:rotate(360deg); } }
-  .loading-msg{ font-family:var(--mono); font-size:.82rem; color:var(--text-mid); letter-spacing:.03em; }
-  .error-state{ color:var(--danger); font-family:var(--mono); font-size:.85rem; max-width:38ch; }
-
-  .meta-pills{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; justify-content:center; }
-  .tag-pill{
-    font-family:var(--mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase;
-    padding:4px 10px; border-radius:999px; background:rgba(205,164,52,.12); color:var(--gold-bright);
-    border:1px solid rgba(205,164,52,.25);
-  }
-  .tag-theme{ background:rgba(166,143,212,.12); color:var(--lilac); border-color:rgba(166,143,212,.25); }
-
-  .gallery-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:18px; width:100%; }
-  .frame{
-    position:relative; border:6px solid #17141f; outline:1px solid rgba(205,164,52,.4); outline-offset:-1px;
-    border-radius:2px; overflow:hidden; cursor:zoom-in; background:var(--ink-panel-2); aspect-ratio:1/1;
-  }
-  .frame img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s var(--ease); }
-  .frame:hover img{ transform:scale(1.06); }
-  .frame-actions{
-    position:absolute; inset:auto 0 0 0; padding:10px 12px;
-    background:linear-gradient(180deg, transparent, rgba(0,0,0,.75));
-    display:flex; justify-content:flex-end; opacity:0; transition:opacity .2s var(--ease);
-  }
-  .frame:hover .frame-actions{ opacity:1; }
-  .frame-actions button{
-    background:rgba(20,18,31,.8); border:1px solid rgba(244,239,224,.3); color:var(--text-hi);
-    width:34px; height:34px; border-radius:50%; font-size:.85rem; cursor:pointer;
-  }
-  @media (hover:none){ .frame-actions{ opacity:1; background:linear-gradient(180deg, transparent, rgba(0,0,0,.85)); } }
-
-  /* ---------- style showcase ---------- */
-  .style-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
-  @media (max-width:760px){ .style-grid{ grid-template-columns:repeat(2,1fr); } }
-  @media (max-width:480px){ .style-grid{ grid-template-columns:1fr; } }
-  .style-card{
-    border-radius:var(--radius); overflow:hidden; border:1px solid rgba(244,239,224,.08);
-    background:var(--ink-panel); cursor:pointer; transition:transform .25s var(--ease), border-color .25s var(--ease);
-  }
-  .style-card:hover{ transform:translateY(-4px); border-color:var(--gold); }
-  .style-card .swatch-fill{ height:120px; position:relative; overflow:hidden; }
-  .style-card .swatch-fill::after{
-    content:''; position:absolute; inset:0; opacity:.5; mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  }
-  .style-card .meta{ padding:16px 18px 18px; }
-  .style-card h4{ font-family:var(--display); font-weight:500; font-size:1.05rem; margin-bottom:5px; }
-  .style-card p{ font-size:.82rem; color:var(--text-mid); line-height:1.5; }
-  .fill-watercolor{ background:linear-gradient(135deg,#7fb8d8,#e8c565); }
-  .fill-oil-painting{ background:linear-gradient(135deg,#8a3b2b,#cda434); }
-  .fill-ink-sketch{ background:linear-gradient(135deg,#2a2733,#b9b3c9); }
-  .fill-photorealistic{ background:linear-gradient(135deg,#3c4a5c,#d9cdac); }
-  .fill-surreal{ background:linear-gradient(135deg,#a68fd4,#c98a9c); }
-  .fill-ukiyo-e{ background:linear-gradient(135deg,#3f7d6c,#e8c565); }
-
-  /* ---------- how it works ---------- */
-  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(244,239,224,.08); border-radius:var(--radius); overflow:hidden; }
-  @media (max-width:760px){ .steps{ grid-template-columns:1fr; } }
-  .step{ background:var(--ink); padding:36px 30px; }
-  .step-icon{ width:38px; height:38px; color:var(--gold); margin-bottom:16px; }
-  .step-num{ font-family:var(--mono); font-size:.78rem; color:var(--gold); letter-spacing:.1em; }
-  .step h3{ font-family:var(--display); font-weight:500; font-size:1.3rem; margin:14px 0 10px; }
-  .step p{ color:var(--text-mid); font-size:.94rem; line-height:1.6; }
-
-  /* ---------- testimonials ---------- */
-  .testimonial-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
-  @media (max-width:900px){ .testimonial-grid{ grid-template-columns:1fr; } }
-  .testimonial{ background:var(--ink-panel); border:1px solid rgba(244,239,224,.08); border-radius:var(--radius); padding:28px; position:relative; }
-  .testimonial .quote-mark{ font-family:var(--display); font-size:2.6rem; color:var(--gold); opacity:.35; line-height:1; }
-  .testimonial p.quote{ font-family:var(--display); font-style:italic; font-size:1.02rem; line-height:1.65; margin-top:6px; color:var(--text-hi); }
-  .testimonial-who{ display:flex; align-items:center; gap:12px; margin-top:20px; }
-  .avatar{
-    width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    font-family:var(--mono); font-size:.78rem; font-weight:600; color:var(--ink); flex-shrink:0;
-  }
-  .who-name{ font-size:.88rem; font-weight:600; }
-  .who-role{ font-size:.76rem; color:var(--text-low); }
-
-  /* ---------- faq ---------- */
-  .faq-item{ border-bottom:1px solid rgba(244,239,224,.1); }
-  .faq-q{
-    width:100%; text-align:left; background:none; border:0; color:var(--text-hi);
-    font-family:var(--body); font-size:1.02rem; font-weight:500; padding:20px 0; cursor:pointer;
-    display:flex; justify-content:space-between; align-items:center; gap:16px;
-  }
-  .faq-q .chev{ width:16px; height:16px; flex-shrink:0; transition:transform .25s var(--ease); color:var(--gold); }
-  .faq-item.open .faq-q .chev{ transform:rotate(180deg); }
-  .faq-a{ max-height:0; overflow:hidden; transition:max-height .3s var(--ease); }
-  .faq-item.open .faq-a{ max-height:220px; }
-  .faq-a p{ padding:0 0 22px; color:var(--text-mid); font-size:.94rem; line-height:1.65; max-width:64ch; }
-
-  /* ---------- gallery/history section ---------- */
-  #gallery .empty-state{ padding:40px 0; text-align:center; width:100%; }
-  .history-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:22px; }
-  .history-card{ background:var(--ink-panel); border:1px solid rgba(244,239,224,.08); border-radius:var(--radius); overflow:hidden; }
-  .history-card .frame{ border-width:0; outline:none; border-radius:0; aspect-ratio:1/1; }
-  .history-meta{ padding:14px 16px 16px; }
-  .history-poem{ font-family:var(--display); font-style:italic; font-size:.92rem; color:var(--text-mid); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .history-style{ font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--lilac); margin-top:8px; }
-
-  /* ---------- lightbox ---------- */
-  .lightbox{ position:fixed; inset:0; background:rgba(10,9,16,.92); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:200; padding:40px; }
-  .lightbox.open{ display:flex; }
-  .lightbox img{ max-width:min(84vw,780px); max-height:78vh; border:1px solid rgba(205,164,52,.4); }
-  .lightbox-close{ position:absolute; top:28px; right:32px; background:none; border:1px solid rgba(244,239,224,.3); color:var(--text-hi); width:40px; height:40px; border-radius:50%; font-size:1.2rem; cursor:pointer; }
-  .lightbox-nav{
-    position:absolute; top:50%; transform:translateY(-50%); background:rgba(20,18,31,.7); border:1px solid rgba(244,239,224,.25);
-    color:var(--text-hi); width:44px; height:44px; border-radius:50%; font-size:1.3rem; cursor:pointer;
-  }
-  .lightbox-prev{ left:24px; } .lightbox-next{ right:24px; }
-  @media (max-width:480px){
-    .lightbox{ padding:20px; }
-    .lightbox-close{ top:16px; right:16px; width:44px; height:44px; }
-    .lightbox-nav{ width:38px; height:38px; }
-    .lightbox-prev{ left:8px; } .lightbox-next{ right:8px; }
+  .badge-purple {
+    background: rgba(139, 108, 199, 0.12);
+    border-color: rgba(139, 108, 199, 0.3);
+    color: #cbb5f8;
   }
 
-  /* ---------- toast ---------- */
-  .toast{
-    position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(16px);
-    background:var(--ink-panel-2); border:1px solid rgba(205,164,52,.3); padding:12px 22px; border-radius:999px;
-    font-size:.86rem; opacity:0; pointer-events:none; transition:all .3s var(--ease); font-family:var(--mono); z-index:300;
+  /* Compact Hero Section */
+  .hero-section {
+    padding: 52px 0 44px;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 40px;
+    align-items: center;
   }
-  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .hero-title {
+    font-family: var(--font-serif);
+    font-size: clamp(2.2rem, 4.2vw, 3.4rem);
+    line-height: 1.12;
+    font-weight: 600;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .hero-title em {
+    font-style: italic;
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 400;
+  }
+  .hero-desc {
+    color: var(--text-muted);
+    font-size: 1.02rem;
+    line-height: 1.6;
+    max-width: 520px;
+    margin-bottom: 26px;
+  }
+  .hero-actions {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
 
-  footer{ border-top:1px solid rgba(244,239,224,.08); padding:48px 0 40px; margin-top:40px; }
-  .foot-top{ display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:24px; margin-bottom:32px; }
-  .foot-top p{ color:var(--text-low); font-size:.85rem; max-width:38ch; margin-top:8px; }
-  .foot-social{ display:flex; gap:10px; }
-  .foot-social a{
-    width:36px; height:36px; border-radius:50%; border:1px solid rgba(244,239,224,.18);
-    display:flex; align-items:center; justify-content:center; color:var(--text-mid);
-    transition:all .2s var(--ease);
+  /* Sleek Modern Buttons (NO UNDERLINES) */
+  .btn-primary {
+    background: var(--gold-gradient);
+    color: #0d0a04 !important;
+    font-weight: 600;
+    font-size: 0.94rem;
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 18px rgba(212, 175, 55, 0.28);
+    transition: all 0.22s var(--ease);
+    text-decoration: none !important;
   }
-  .foot-social a:hover{ border-color:var(--gold); color:var(--gold-bright); }
-  .foot-social svg{ width:15px; height:15px; }
-  .foot-bottom{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:24px; border-top:1px solid rgba(244,239,224,.06); }
-  .foot-bottom p{ color:var(--text-low); font-size:.8rem; }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(212, 175, 55, 0.45);
+  }
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main) !important;
+    font-weight: 500;
+    font-size: 0.94rem;
+    padding: 12px 22px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.22s var(--ease);
+    text-decoration: none !important;
+  }
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--purple-accent);
+    color: #fff !important;
+    transform: translateY(-2px);
+  }
+
+  .hero-features-strip {
+    display: flex; gap: 20px; flex-wrap: wrap;
+    font-size: 0.84rem; color: var(--text-dim);
+  }
+  .hero-features-strip span {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .hero-features-strip svg { width: 15px; height: 15px; color: var(--gold); }
+
+  /* Hero Holographic Art Interactive Card */
+  .hero-visual {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 400px;
+    margin: 0 auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .holo-orb {
+    position: relative;
+    width: 290px; height: 290px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(243,208,120,0.85) 0%, rgba(139,108,199,0.7) 45%, rgba(20,16,35,0.95) 80%);
+    box-shadow: 
+      0 0 60px rgba(139,108,199,0.35),
+      0 0 100px rgba(212,175,55,0.2),
+      inset 0 0 40px rgba(255,255,255,0.3);
+    animation: orbFloat 7s ease-in-out infinite alternate;
+    overflow: hidden;
+  }
+  @keyframes orbFloat {
+    0% { transform: translateY(0px) rotate(0deg); }
+    100% { transform: translateY(-10px) rotate(8deg); }
+  }
+  .holo-ring {
+    position: absolute; inset: -20px;
+    border-radius: 50%;
+    border: 1px dashed rgba(232, 197, 101, 0.4);
+    animation: ringSpin 24s linear infinite;
+  }
+  .holo-ring-2 {
+    position: absolute; inset: -40px;
+    border-radius: 50%;
+    border: 1px solid rgba(139, 108, 199, 0.25);
+  }
+  @keyframes ringSpin { to { transform: rotate(360deg); } }
+
+  .floating-quote-card {
+    position: absolute;
+    bottom: 12px; left: -10px;
+    background: rgba(18, 15, 30, 0.85);
+    border: 1px solid var(--border-glow);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.5);
+    backdrop-filter: blur(12px);
+    max-width: 230px;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.84rem;
+    color: var(--text-main);
+  }
+
+  /* Main Workspace / Compose Section */
+  .workspace-section {
+    padding: 30px 0 50px;
+  }
+  .section-header {
+    margin-bottom: 24px;
+  }
+  .section-header h2 {
+    font-family: var(--font-serif);
+    font-size: 1.85rem;
+    font-weight: 600;
+  }
+  .section-header p {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    margin-top: 4px;
+  }
+
+  /* Quick Demo Poem Chips */
+  .demo-strip {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .demo-chip {
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 6px 13px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+  }
+  .demo-chip:hover {
+    background: rgba(212, 175, 55, 0.12);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+  .demo-chip.surprise {
+    background: rgba(139, 108, 199, 0.14);
+    border-color: rgba(139, 108, 199, 0.35);
+    color: #dfd4fa;
+  }
+
+  /* Two-column layout */
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+  }
+
+  /* Left Panel: Studio Card */
+  .studio-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .parchment-box {
+    background: #f4edd8;
+    color: #1f1b14;
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    position: relative;
+    border: 1px solid rgba(200, 170, 90, 0.4);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+  }
+  .parchment-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: #7d7054;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+  }
+  #poemInput {
+    width: 100%;
+    min-height: 190px;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: vertical;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.18rem;
+    line-height: 1.65;
+    color: #1a1610;
+  }
+  #poemInput::placeholder { color: #8e826b; }
+  .parchment-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(30, 20, 10, 0.2);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: #6a5e46;
+  }
+  .mood-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px;
+    background: rgba(40, 30, 10, 0.07);
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .mood-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #a39575;
+  }
+
+  /* Style Selector */
+  .style-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 18px 0 10px;
+  }
+  .style-chips {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .style-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+  }
+  .style-chip:hover {
+    border-color: var(--purple-accent);
+    color: #fff;
+  }
+  .style-chip.active {
+    background: var(--purple-accent);
+    border-color: var(--purple-accent);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 0 14px var(--purple-glow);
+  }
+  .style-swatch {
+    width: 14px; height: 14px; border-radius: 50%;
+  }
+
+  .action-row {
+    margin-top: 22px;
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  /* Right Panel: Output Gallery */
+  .output-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    min-height: 440px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .output-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .output-top-title {
+    font-size: 0.85rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--gold-light);
+  }
+  .output-content {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .empty-state {
+    color: var(--text-dim);
+  }
+  .empty-state svg {
+    width: 50px; height: 50px; margin-bottom: 12px; opacity: 0.35;
+  }
+  .empty-state p {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--text-muted);
+  }
+
+  /* Loading State */
+  .loading-container {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  .pulse-spinner {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    border: 3px solid rgba(212, 175, 55, 0.15);
+    border-top-color: var(--gold-light);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-msg {
+    font-size: 0.88rem; font-family: var(--font-mono); color: var(--gold-light);
+  }
+
+  /* Gallery Grid */
+  .gallery-layout {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+  }
+  .art-frame {
+    position: relative;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--border-glow);
+    background: #000;
+    cursor: zoom-in;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  }
+  .art-frame img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+    transition: transform 0.4s var(--ease);
+  }
+  .art-frame:hover img { transform: scale(1.05); }
+  .art-overlay {
+    position: absolute; inset: auto 0 0 0;
+    padding: 10px;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.8));
+    display: flex; justify-content: flex-end;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .art-frame:hover .art-overlay { opacity: 1; }
+  .art-dl-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.8rem;
+  }
+
+  /* Agent Meta Pills */
+  .agent-meta-row {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .meta-tag {
+    font-size: 0.74rem; font-family: var(--font-mono);
+    padding: 3px 10px; border-radius: 999px;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    color: var(--gold-light);
+  }
+
+  /* Modern Compact Style Showcase */
+  .style-showcase-section {
+    padding: 40px 0;
+  }
+  .style-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 960px) { .style-cards-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 580px) { .style-cards-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .showcase-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+  }
+  .showcase-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--gold);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
+  }
+  .showcase-thumb {
+    height: 75px;
+    position: relative;
+  }
+  .showcase-info {
+    padding: 10px 12px;
+  }
+  .showcase-info h4 {
+    font-size: 0.88rem; font-weight: 600; color: #fff;
+  }
+  .showcase-info p {
+    font-size: 0.74rem; color: var(--text-dim); margin-top: 2px;
+    line-height: 1.35;
+  }
+
+  /* FAQ Accordion Compact 2-Col */
+  .faq-section {
+    padding: 40px 0 60px;
+  }
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 760px) { .faq-grid { grid-template-columns: 1fr; } }
+  .faq-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    transition: border-color 0.2s;
+  }
+  .faq-box:hover { border-color: rgba(255,255,255,0.18); }
+  .faq-q {
+    font-size: 0.94rem; font-weight: 600; color: #fff;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+  .faq-q svg { width: 16px; height: 16px; color: var(--gold); flex-shrink: 0; }
+  .faq-a {
+    font-size: 0.84rem; color: var(--text-muted); line-height: 1.55;
+  }
+
+  /* History Gallery Strip */
+  .history-section {
+    padding: 30px 0 50px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .history-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 18px;
+  }
+
+  /* Lightbox */
+  .lightbox-modal {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(8, 6, 14, 0.94);
+    backdrop-filter: blur(10px);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .lightbox-modal.open { display: flex; }
+  .lightbox-modal img {
+    max-width: min(90vw, 760px);
+    max-height: 80vh;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-glow);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+  }
+  .lightbox-close-btn {
+    position: absolute; top: 24px; right: 28px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+
+  /* Toast Notification */
+  .toast-pill {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1f1b2c;
+    border: 1px solid var(--border-glow);
+    color: var(--gold-light);
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: all 0.25s var(--ease);
+    z-index: 600;
+  }
+  .toast-pill.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border-subtle);
+    padding: 28px 0;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  }
+
+  @media (max-width: 860px) {
+    .hero-section { grid-template-columns: 1fr; padding: 36px 0; text-align: center; }
+    .hero-desc { margin: 0 auto 24px; }
+    .hero-actions { justify-content: center; }
+    .hero-features-strip { justify-content: center; }
+    .workspace-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 
-<canvas id="particles" aria-hidden="true"></canvas>
-<div class="grain-overlay" aria-hidden="true"></div>
-<div id="cursorGlow" aria-hidden="true"></div>
-<div id="scrollProgress"></div>
-<div id="introSplash" aria-hidden="true">
-  <svg viewBox="0 0 40 40" fill="none">
-    <path d="M20 4C20 4 8 14 8 24C8 30.6 13.4 36 20 36C26.6 36 32 30.6 32 24C32 14 20 4 20 4Z" fill="#cda434"/>
-  </svg>
-</div>
+<canvas id="ambientCanvas"></canvas>
 
+<!-- Header -->
 <header>
-  <div class="wrap nav">
-    <a href="#top" class="brand">
-      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
-        <path d="M20 4C20 4 8 14 8 24C8 30.6 13.4 36 20 36C26.6 36 32 30.6 32 24C32 14 20 4 20 4Z" fill="#cda434" opacity="0.9"/>
-        <path d="M20 12C20 12 13 18.5 13 24.5C13 28.6 16.1 32 20 32" stroke="#14121f" stroke-width="1.4" fill="none" opacity="0.5"/>
-      </svg>
-      Versilume
+  <div class="container nav-bar">
+    <a href="#" class="brand-logo">
+      <div class="brand-icon">✧</div>
+      <span>Versilume</span>
     </a>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="#compose">Compose</a></li>
-      <li><a href="#styles">Styles</a></li>
-      <li><a href="#how">How it works</a></li>
-      <li><a href="#faq">FAQ</a></li>
-      <li><a href="#gallery">Gallery</a></li>
+    <ul class="nav-menu">
+      <li><a href="#studio" class="nav-link">Studio</a></li>
+      <li><a href="#styles" class="nav-link">Art Styles</a></li>
+      <li><a href="#faq" class="nav-link">FAQ</a></li>
+      <li><a href="https://github.com/VijayLabKit/Versilume" target="_blank" class="nav-link">GitHub</a></li>
     </ul>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
   </div>
 </header>
 
-<main id="top">
+<main class="container">
 
-  <!-- ============ HERO ============ -->
-  <div class="wrap hero">
+  <!-- Compact Hero Section -->
+  <section class="hero-section">
     <div>
-      <p class="eyebrow">Poetry, illuminated</p>
-      <h1>Every line you write<br><em>becomes</em> a vision.</h1>
-      <p class="lede">Write a poem in any of 127 languages. Our multi-agent AI reads its emotions, metaphors, and rhythm — painting it back to you as breathtaking digital artwork.</p>
-      <div class="hero-cta">
-        <a href="#compose" class="btn btn-gold">Start writing →</a>
-        <a href="#how" class="btn btn-ghost">See how it works</a>
+      <div class="badge">
+        <span>✨</span> Multi-Agent Literary Synthesis
       </div>
-      <div class="hero-meta">
-        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Ready in seconds</div>
-        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M4 9h16"/></svg> 6 visual styles</div>
-        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M4 12h10M4 18h16"/></svg> 127 languages supported</div>
+      <h1 class="hero-title">Every line you write<br><em>becomes</em> illuminated art.</h1>
+      <p class="hero-desc">Write poetry in 127 languages. Our parallel Llama-3.2 agents analyze emotion, nuance, and visual metaphors — painting them back in high-resolution aesthetic styles.</p>
+      <div class="hero-actions">
+        <a href="#studio" class="btn-primary">Start Writing Poetry →</a>
+        <a href="#styles" class="btn-secondary">Explore Art Styles</a>
+      </div>
+      <div class="hero-features-strip">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Instant Generation</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> 6 Curated Aesthetics</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> 127 Languages</span>
       </div>
     </div>
-    <div class="hero-art" aria-hidden="true">
-      <svg viewBox="0 0 400 400" class="layer" data-depth="0.02">
-        <circle class="star" cx="60" cy="70" r="2"/>
-        <circle class="star" cx="330" cy="60" r="1.6"/>
-        <circle class="star" cx="350" cy="200" r="2.2"/>
-        <circle class="star" cx="40" cy="260" r="1.8"/>
-      </svg>
-      <svg viewBox="0 0 400 400" class="layer" data-depth="0.05">
-        <circle class="bloom-ring" cx="200" cy="200" r="170"/>
-        <circle class="bloom-ring" cx="200" cy="200" r="130" opacity="0.5"/>
-      </svg>
-      <svg viewBox="0 0 400 400" class="layer" data-depth="0.09">
-        <defs>
-          <radialGradient id="bloomGrad" cx="35%" cy="30%" r="75%">
-            <stop offset="0%" stop-color="#e8c565"/>
-            <stop offset="55%" stop-color="#a68fd4"/>
-            <stop offset="100%" stop-color="#5b4d82"/>
-          </radialGradient>
-        </defs>
-        <path class="bloom-blob" d="M200,70 C260,70 300,120 305,175 C310,235 275,300 205,320 C130,340 85,285 75,220 C65,155 110,95 150,80 C165,74 182,70 200,70 Z"/>
-        <circle class="bloom-dot" cx="140" cy="150" r="4"/>
-        <circle class="bloom-dot" cx="260" cy="200" r="3"/>
-        <circle class="bloom-dot" cx="200" cy="270" r="3.5"/>
-      </svg>
-      <svg viewBox="0 0 400 400" class="layer" data-depth="0.14">
-        <path class="quill-path" d="M150,300 C170,260 190,230 230,190 C250,170 270,150 285,120"/>
-        <path class="ink-drop" d="M150,300 c6,10 6,22 -2,28 c-8,6 -18,2 -20,-8 c-2,-10 4,-22 14,-26 c4,-2 6,4 8,6 Z"/>
-      </svg>
-    </div>
-  </div>
-
-  <hr class="divider">
-
-  <!-- ============ WHY / FEATURES ============ -->
-  <section id="why">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">Multi-Agent Intelligence</p>
-        <h2>Built around the way poems actually work.</h2>
-      </div>
-      <div class="feature-grid reveal">
-        <div class="feature-card">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19l5-5 4 4 7-8"/></svg></div>
-          <h3>Tri-Agent Literary Extraction</h3>
-          <p>Three concurrent Llama-3.2 agents analyze emotion nuance, symbolic themes, and concrete visual metaphors.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 14h16"/></svg></div>
-          <h3>Six Curated Visual Styles</h3>
-          <p>From loose watercolor to ukiyo-e woodblock — pick your aesthetic before rendering.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18"/></svg></div>
-          <h3>127 Language Translation</h3>
-          <p>Gemini poetic translation translates Indic, European, and World poetry while preserving cultural cadence.</p>
-        </div>
+    <div class="hero-visual">
+      <div class="holo-ring"></div>
+      <div class="holo-ring-2"></div>
+      <div class="holo-orb"></div>
+      <div class="floating-quote-card">
+        "The starry night unrolls its velvet deep..."
       </div>
     </div>
   </section>
 
-  <hr class="divider">
-
-  <!-- ============ COMPOSE ============ -->
-  <section id="compose">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">01 — The page</p>
-        <h2>Write, choose a style, and let it render.</h2>
-        <p>The more sensory your imagery, the richer the generated artwork. Try one of our demo poems below.</p>
+  <!-- Workspace / Studio Section -->
+  <section class="workspace-section" id="studio">
+    <div class="section-header">
+      <div class="badge badge-purple">
+        <span>✍️</span> Poetry Studio
       </div>
+      <h2>Compose &amp; Illuminate</h2>
+      <p>Enter your poem or try one of the quick samples below.</p>
+    </div>
 
-      <div class="examples-row reveal" id="examplesRow">
-        <button class="example-chip" data-poem="An ancient silent pond,&#10;A green frog leaps into the water,&#10;A deep resonance of stillness.">Silent Pond</button>
-        <button class="example-chip" data-poem="The starry night unrolls its velvet deep,&#10;A silver crescent watches over sleep.&#10;Whispers of wind through ancient willow boughs,&#10;As dreaming hills renew their quiet vows.">Velvet Night</button>
-        <button class="example-chip" data-poem="Fierce black waves crash against the towering stone,&#10;The lighthouse beam pierces the dark alone.&#10;&#10;Then golden dawn breaks through the misty gray,&#10;The tempest sighs and slowly drifts away.">Storm &amp; Dawn</button>
-        <button class="example-chip" data-poem="আমার এই পথ চাওয়াতেই আনন্দ।&#10;খেলে যায় রৌদ্রছায়া, বর্ষা আসে বসন্ত।&#10;বাতাস আসে মেঘের খবর নিয়ে,&#10;পরান আমার নাচে রে সেই গানে মেতে।">পথ চাওয়া (Tagore)</button>
-        <button class="example-chip surprise" id="surpriseBtn" type="button">🎲 Surprise me</button>
-      </div>
+    <!-- Quick Demo Chips -->
+    <div class="demo-strip" id="demoStrip">
+      <button class="demo-chip" data-poem="An ancient silent pond,&#10;A green frog leaps into the water,&#10;A deep resonance of stillness.">Silent Pond (Bashō)</button>
+      <button class="demo-chip" data-poem="The starry night unrolls its velvet deep,&#10;A silver crescent watches over sleep.&#10;Whispers of wind through ancient willow boughs,&#10;As dreaming hills renew their quiet vows.">Velvet Night</button>
+      <button class="demo-chip" data-poem="Fierce black waves crash against the towering stone,&#10;The lighthouse beam pierces the dark alone.&#10;&#10;Then golden dawn breaks through the misty gray,&#10;The tempest sighs and slowly drifts away.">Storm &amp; Dawn</button>
+      <button class="demo-chip" data-poem="আমার এই পথ চাওয়াতেই আনন্দ।&#10;খেলে যায় রৌদ্রছায়া, বর্ষা আসে বসন্ত।&#10;বাতাস আসে মেঘের খবর নিয়ে,&#10;পরান আমার নাচে রে সেই গানে মেতে।">পথ চাওয়া (Tagore)</button>
+      <button class="demo-chip surprise" id="surpriseBtn">🎲 Surprise Me</button>
+    </div>
 
-      <div class="compose-grid">
-        <!-- LEFT: paper input -->
-        <div class="reveal">
-          <div class="page">
-            <div class="page-label">
-              <span>Your poem</span>
-              <span id="lineCount">0 lines</span>
-            </div>
-            <textarea id="poemInput" placeholder="The last light falls through amber trees,
+    <div class="workspace-grid">
+      <!-- Left: Input Card -->
+      <div class="studio-card">
+        <div class="parchment-box">
+          <div class="parchment-header">
+            <span>Poem Manuscript</span>
+            <span id="lineCount">0 lines</span>
+          </div>
+          <textarea id="poemInput" placeholder="The last light falls through amber trees,
 a river holds the sky's reflection still—
 write what you see, and what you feel beneath it..."></textarea>
-            <div class="page-foot">
-              <span id="charCount">0 / 1200 characters</span>
-              <span class="mood-pill" id="moodPill" data-mood="">
-                <span class="mood-dot"></span>
-                <span id="moodLabel">Write a line to see a reading</span>
-              </span>
-              <span id="wordCount">0 words</span>
-            </div>
-          </div>
-
-          <p class="field-label">Visual style</p>
-          <div class="chips" id="styleChips">
-            <button class="chip active" data-style="watercolor"><span class="swatch swatch-watercolor"></span>Watercolor</button>
-            <button class="chip" data-style="oil-painting"><span class="swatch swatch-oil-painting"></span>Oil Painting</button>
-            <button class="chip" data-style="ink-sketch"><span class="swatch swatch-ink-sketch"></span>Ink Sketch</button>
-            <button class="chip" data-style="photorealistic"><span class="swatch swatch-photorealistic"></span>Photorealistic</button>
-            <button class="chip" data-style="surreal"><span class="swatch swatch-surreal"></span>Surreal</button>
-            <button class="chip" data-style="ukiyo-e"><span class="swatch swatch-ukiyo-e"></span>Ukiyo-e</button>
-          </div>
-
-          <p class="field-label">Scene Detection</p>
-          <div class="chips" id="sceneChips">
-            <button class="chip active" id="btnAutoScenes" data-single="false">⚡ Auto (Multi-Scene)</button>
-            <button class="chip" id="btnSingleScene" data-single="true">🖼️ Single Image Only</button>
-          </div>
-
-          <div class="generate-row">
-            <button class="btn btn-gold" id="generateBtn">
-              <span id="generateBtnLabel">Render this poem</span>
-            </button>
-            <span class="hint">or press <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd></span>
-          </div>
-        </div>
-
-        <!-- RIGHT: output -->
-        <div class="output reveal">
-          <div class="output-head">
-            <p class="field-label">Result</p>
-            <span class="hint" id="outputMeta"></span>
-          </div>
-          <div class="output-body" id="outputBody">
-            <div class="empty-state">
-              <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.4">
-                <rect x="8" y="12" width="48" height="40" rx="2"/>
-                <circle cx="22" cy="26" r="5"/>
-                <path d="M8 44l14-14 10 10 8-8 16 16"/>
-              </svg>
-              <p>Your artwork will appear here.</p>
+          <div class="parchment-footer">
+            <span id="charCount">0 / 1200 chars</span>
+            <div class="mood-tag" id="moodTag">
+              <span class="mood-dot" id="moodDot"></span>
+              <span id="moodText">Analyzing mood…</span>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <hr class="divider">
-
-  <!-- ============ STYLE SHOWCASE ============ -->
-  <section id="styles">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">02 — Six ways to see it</p>
-        <h2>Pick a style, or click one to try it now.</h2>
-      </div>
-      <div class="style-grid reveal" id="styleShowcase">
-        <div class="style-card" data-style="watercolor"><div class="swatch-fill fill-watercolor"></div><div class="meta"><h4>Watercolor</h4><p>Soft edges, bleeding color, light-filled and loose.</p></div></div>
-        <div class="style-card" data-style="oil-painting"><div class="swatch-fill fill-oil-painting"></div><div class="meta"><h4>Oil Painting</h4><p>Rich texture, deep shadow, classical brushwork.</p></div></div>
-        <div class="style-card" data-style="ink-sketch"><div class="swatch-fill fill-ink-sketch"></div><div class="meta"><h4>Ink Sketch</h4><p>Line-driven, monochrome, quick and expressive.</p></div></div>
-        <div class="style-card" data-style="photorealistic"><div class="swatch-fill fill-photorealistic"></div><div class="meta"><h4>Photorealistic</h4><p>Grounded detail, natural light, believable scenes.</p></div></div>
-        <div class="style-card" data-style="surreal"><div class="swatch-fill fill-surreal"></div><div class="meta"><h4>Surreal</h4><p>Dreamlike logic, impossible scale, strange color.</p></div></div>
-        <div class="style-card" data-style="ukiyo-e"><div class="swatch-fill fill-ukiyo-e"></div><div class="meta"><h4>Ukiyo-e</h4><p>Flat color fields and bold outline, woodblock print.</p></div></div>
-      </div>
-    </div>
-  </section>
-
-  <hr class="divider">
-
-  <!-- ============ HOW IT WORKS ============ -->
-  <section id="how">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">03 — Behind the page</p>
-        <h2>From stanza to image, in three steps.</h2>
-      </div>
-      <div class="steps reveal">
-        <div class="step">
-          <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19l14-14M15 3h6v6M13 5l-9 9v6h6l9-9"/></svg>
-          <span class="step-num">01</span>
-          <h3>You write</h3>
-          <p>A poem, a fragment, even a single evocative line in any language — plus your preferred artistic style.</p>
+        <p class="style-label">Select Visual Aesthetic</p>
+        <div class="style-chips" id="styleSelector">
+          <button class="style-chip active" data-style="watercolor"><span class="style-swatch" style="background: linear-gradient(135deg,#7fb8d8,#e8c565);"></span>Watercolor</button>
+          <button class="style-chip" data-style="oil-painting"><span class="style-swatch" style="background: linear-gradient(135deg,#8a3b2b,#cda434);"></span>Oil Painting</button>
+          <button class="style-chip" data-style="ink-sketch"><span class="style-swatch" style="background: linear-gradient(135deg,#2a2733,#b9b3c9);"></span>Ink Sketch</button>
+          <button class="style-chip" data-style="photorealistic"><span class="style-swatch" style="background: linear-gradient(135deg,#3c4a5c,#d9cdac);"></span>Photorealistic</button>
+          <button class="style-chip" data-style="surreal"><span class="style-swatch" style="background: linear-gradient(135deg,#a68fd4,#c98a9c);"></span>Surreal</button>
+          <button class="style-chip" data-style="ukiyo-e"><span class="style-swatch" style="background: linear-gradient(135deg,#3f7d6c,#e8c565);"></span>Ukiyo-e</button>
         </div>
-        <div class="step">
-          <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12a8 8 0 1116 0 8 8 0 01-16 0z"/><path d="M12 8v4l3 2"/></svg>
-          <span class="step-num">02</span>
-          <h3>Multi-Agents Extract</h3>
-          <p>Our Tri-Agent Llama pipeline and Gemini translation read emotions, metaphors, and themes to construct rich prompts.</p>
+
+        <div class="action-row">
+          <button class="btn-primary" id="renderBtn">
+            <span id="renderBtnText">Render Artwork</span>
+          </button>
+          <span style="font-size:0.8rem; color:var(--text-dim);">or press <kbd style="background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px;">Ctrl+Enter</kbd></span>
         </div>
-        <div class="step">
-          <svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M3 17l5-5 4 4 5-6 4 4"/></svg>
-          <span class="step-num">03</span>
-          <h3>It's painted back</h3>
-          <p>FLUX / SDXL renders high-resolution artwork for each scene — view full-size, inspect agent metadata, or download.</p>
+      </div>
+
+      <!-- Right: Artwork Output Card -->
+      <div class="output-card">
+        <div class="output-top">
+          <span class="output-top-title">Generated Artwork</span>
+          <span id="outputMetaText" style="font-size:0.8rem; color:var(--text-muted);"></span>
+        </div>
+        <div class="output-content" id="outputContentArea">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <path d="M21 15l-5-5L5 21"/>
+            </svg>
+            <p>Your illuminated artwork will render here.</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <hr class="divider">
-
-  <!-- ============ FAQ ============ -->
-  <section id="faq">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">Questions</p>
-        <h2>Frequently Asked Questions</h2>
+  <!-- Style Showcase Section -->
+  <section class="style-showcase-section" id="styles">
+    <div class="section-header">
+      <div class="badge">
+        <span>🎨</span> Curated Palette
       </div>
-      <div class="reveal" id="faqList">
-        <div class="faq-item open">
-          <button class="faq-q"><span>Can I input non-English poems?</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
-          <div class="faq-a"><p>Yes! Versilume supports 127 languages. Gemini translates poetic meaning and cultural nuance before multi-agent extraction.</p></div>
+      <h2>Artistic Styles</h2>
+      <p>Select any style below to quickly apply it to your current composition.</p>
+    </div>
+    <div class="style-cards-grid" id="showcaseCards">
+      <div class="showcase-card" data-style="watercolor">
+        <div class="showcase-thumb" style="background: linear-gradient(135deg,#7fb8d8,#e8c565);"></div>
+        <div class="showcase-info">
+          <h4>Watercolor</h4>
+          <p>Soft luminous washes &amp; bleeding organic pigment.</p>
         </div>
-        <div class="faq-item">
-          <button class="faq-q"><span>How does multi-agent extraction work?</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
-          <div class="faq-a"><p>Three Llama-3.2 agents run in parallel: Emotion Agent extracts nuance, Semantic Agent maps themes &amp; symbols, and Metaphor Agent resolves abstract metaphors into paintable visual cues.</p></div>
+      </div>
+      <div class="showcase-card" data-style="oil-painting">
+        <div class="showcase-thumb" style="background: linear-gradient(135deg,#8a3b2b,#cda434);"></div>
+        <div class="showcase-info">
+          <h4>Oil Painting</h4>
+          <p>Heavy chiaroscuro, rich impasto, classical tone.</p>
         </div>
-        <div class="faq-item">
-          <button class="faq-q"><span>Can I download the generated images?</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
-          <div class="faq-a"><p>Yes — hover or tap any artwork to download in full resolution, or click to open in the lightbox viewer.</p></div>
+      </div>
+      <div class="showcase-card" data-style="ink-sketch">
+        <div class="showcase-thumb" style="background: linear-gradient(135deg,#2a2733,#b9b3c9);"></div>
+        <div class="showcase-info">
+          <h4>Ink Sketch</h4>
+          <p>Sumi-e inspired line dynamics &amp; monochrome contrast.</p>
+        </div>
+      </div>
+      <div class="showcase-card" data-style="photorealistic">
+        <div class="showcase-thumb" style="background: linear-gradient(135deg,#3c4a5c,#d9cdac);"></div>
+        <div class="showcase-info">
+          <h4>Photorealistic</h4>
+          <p>Cinematic lighting &amp; atmospheric depth.</p>
+        </div>
+      </div>
+      <div class="showcase-card" data-style="surreal">
+        <div class="showcase-thumb" style="background: linear-gradient(135deg,#a68fd4,#c98a9c);"></div>
+        <div class="showcase-info">
+          <h4>Surreal</h4>
+          <p>Dreamlike scale, metaphysical logic &amp; fantasy.</p>
+        </div>
+      </div>
+      <div class="showcase-card" data-style="ukiyo-e">
+        <div class="showcase-thumb" style="background: linear-gradient(135deg,#3f7d6c,#e8c565);"></div>
+        <div class="showcase-info">
+          <h4>Ukiyo-e</h4>
+          <p>Edo-era woodblock carving, bold contour lines.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <hr class="divider">
+  <!-- FAQ Section (Compact 2-Column Grid) -->
+  <section class="faq-section" id="faq">
+    <div class="section-header">
+      <div class="badge badge-purple">
+        <span>💡</span> Information
+      </div>
+      <h2>Frequently Asked Questions</h2>
+    </div>
+    <div class="faq-grid">
+      <div class="faq-box">
+        <div class="faq-q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> Can I write poems in other languages?</div>
+        <div class="faq-a">Yes! Versilume seamlessly supports 127 languages. Gemini translates poetic meaning and cultural nuance while preserving rhythm before agent extraction.</div>
+      </div>
+      <div class="faq-box">
+        <div class="faq-q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> How do the multi-agents work?</div>
+        <div class="faq-a">Three dedicated Llama-3.2 agents run in parallel: Emotion Agent captures tone, Semantic Agent identifies themes, and Metaphor Agent converts abstract verse into concrete visual prompts.</div>
+      </div>
+      <div class="faq-box">
+        <div class="faq-q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> How does multi-scene detection work?</div>
+        <div class="faq-a">Long poems are automatically segmented into distinct visual scenes based on emotional and narrative shifts, generating a cohesive storyboard of artworks.</div>
+      </div>
+      <div class="faq-box">
+        <div class="faq-q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> Can I download full-resolution artworks?</div>
+        <div class="faq-a">Yes, simply hover over any rendered artwork to click the download button, or click the frame to open high-resolution lightbox inspection.</div>
+      </div>
+    </div>
+  </section>
 
-  <!-- ============ GALLERY / HISTORY ============ -->
-  <section id="gallery">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">04 — This session</p>
-        <h2>Everything you've rendered today.</h2>
-        <p>Your creations stay here for the length of this visit.</p>
+  <!-- Session History -->
+  <section class="history-section" id="history">
+    <div class="section-header">
+      <div class="badge">
+        <span>🖼️</span> Gallery
       </div>
-      <div id="historyGrid" class="history-grid reveal">
-        <div class="empty-state">
-          <p>Nothing rendered yet — your first poem will appear here.</p>
-        </div>
-      </div>
+      <h2>Session History</h2>
+    </div>
+    <div class="history-grid" id="historyGrid">
+      <p style="color:var(--text-dim); font-size:0.86rem;">No previous generations yet in this session.</p>
     </div>
   </section>
 
 </main>
 
 <footer>
-  <div class="wrap">
-    <div class="foot-top">
-      <div>
-        <a href="#top" class="brand" style="font-size:1.15rem;">Versilume</a>
-        <p>Cross-Lingual Poem-to-Visual Synthesis Platform.</p>
-      </div>
-      <div class="foot-social">
-        <a href="https://github.com/VijayLabKit/Versilume" target="_blank" aria-label="GitHub"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12c0 4.4 2.9 8.1 6.8 9.4.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.4-1.2-1-1.5-1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.4-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.5-1.3.1-2.7 0 0 .8-.3 2.7 1a9.3 9.3 0 015 0c1.9-1.3 2.7-1 2.7-1 .6 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.4 4.6-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0022 12c0-5.5-4.5-10-10-10z"/></svg></a>
-      </div>
+  <div class="container footer-inner">
+    <div>
+      <strong style="color:#fff;">Versilume</strong> — AI Poem-to-Visual Synthesis Platform.
     </div>
-    <div class="foot-bottom">
-      <p>© 2026 Versilume. Developed by Ishan Chowdhury.</p>
-      <p>Made with poetry and AI intelligence.</p>
+    <div>
+      Developed by <strong style="color:var(--gold-light);">Ishan Chowdhury</strong> &copy; 2026.
     </div>
   </div>
 </footer>
 
-<!-- lightbox -->
-<div class="lightbox" id="lightbox">
-  <button class="lightbox-close" id="lightboxClose" aria-label="Close">✕</button>
-  <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Previous image">‹</button>
-  <img id="lightboxImg" src="" alt="Full size generated image">
-  <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Next image">›</button>
+<!-- Lightbox Modal -->
+<div class="lightbox-modal" id="lightboxModal">
+  <button class="lightbox-close-btn" id="lightboxClose">✕</button>
+  <img id="lightboxImage" src="" alt="Enlarged Artwork">
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- Toast Pill -->
+<div class="toast-pill" id="toastPill"></div>
 
 <script>
 /* =========================================================
-   CONFIG — Versilume Backend Integration
+   API Integration & State
    ========================================================= */
 const API_BASE = (window.location.protocol === 'http:' || window.location.protocol === 'https:')
   ? (window.location.port === '8000' ? '' : 'http://localhost:8000')
   : 'http://localhost:8000';
 const API_ENDPOINT = `${API_BASE}/api/v1/generate`;
-const MAX_CHARS = 1200;
 
-async function requestImages(poem, style, forceSingle){
-  const res = await fetch(API_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      poem: poem,
-      style: style,
-      source_language: "auto",
-      force_single_image: forceSingle,
-      enable_refinement: true
-    })
-  });
-  if (!res.ok){
-    let detail = `Backend error (${res.status})`;
-    try {
-      const err = await res.json();
-      if (err.detail) detail = err.detail;
-    } catch(e){}
-    throw new Error(detail);
-  }
-  const data = await res.json();
-  return parseApiResponse(data);
-}
-
-function parseApiResponse(json){
-  if (!json.images || !json.images.length){
-    throw new Error("No images generated for this poem.");
-  }
-  return {
-    images: json.images.map(img => img.image_base64 ? `data:${img.mime_type || 'image/png'};base64,${img.image_base64}` : (img.url || img)),
-    segments: json.segments || [],
-    translation: json.translation || null
-  };
-}
-
-/* =========================================================
-   STATE
-   ========================================================= */
 let selectedStyle = "watercolor";
-let forceSingleImage = false;
-let history = [];
 let currentImages = [];
-let lightboxIndex = 0;
+let sessionHistory = [];
 
-/* =========================================================
-   DOM refs
-   ========================================================= */
-const poemInput   = document.getElementById('poemInput');
-const charCount   = document.getElementById('charCount');
-const wordCount   = document.getElementById('wordCount');
-const lineCount   = document.getElementById('lineCount');
-const moodPill    = document.getElementById('moodPill');
-const moodLabel   = document.getElementById('moodLabel');
-const styleChips  = document.getElementById('styleChips');
-const styleShowcase = document.getElementById('styleShowcase');
-const sceneChips  = document.getElementById('sceneChips');
-const btnAutoScenes = document.getElementById('btnAutoScenes');
-const btnSingleScene = document.getElementById('btnSingleScene');
-const generateBtn = document.getElementById('generateBtn');
-const generateBtnLabel = document.getElementById('generateBtnLabel');
-const outputBody  = document.getElementById('outputBody');
-const outputMeta  = document.getElementById('outputMeta');
-const historyGrid = document.getElementById('historyGrid');
-const examplesRow = document.getElementById('examplesRow');
+/* DOM Elements */
+const poemInput = document.getElementById('poemInput');
+const charCount = document.getElementById('charCount');
+const lineCount = document.getElementById('lineCount');
+const moodDot = document.getElementById('moodDot');
+const moodText = document.getElementById('moodText');
+const renderBtn = document.getElementById('renderBtn');
+const renderBtnText = document.getElementById('renderBtnText');
+const outputContentArea = document.getElementById('outputContentArea');
+const outputMetaText = document.getElementById('outputMetaText');
+const styleSelector = document.getElementById('styleSelector');
+const showcaseCards = document.getElementById('showcaseCards');
+const demoStrip = document.getElementById('demoStrip');
 const surpriseBtn = document.getElementById('surpriseBtn');
-const lightbox      = document.getElementById('lightbox');
-const lightboxImg   = document.getElementById('lightboxImg');
+const historyGrid = document.getElementById('historyGrid');
+const lightboxModal = document.getElementById('lightboxModal');
+const lightboxImage = document.getElementById('lightboxImage');
 const lightboxClose = document.getElementById('lightboxClose');
-const lightboxPrev  = document.getElementById('lightboxPrev');
-const lightboxNext  = document.getElementById('lightboxNext');
-const toastEl = document.getElementById('toast');
+const toastPill = document.getElementById('toastPill');
 
 /* =========================================================
-   Intro splash
+   Ambient Particle Canvas
    ========================================================= */
-window.addEventListener('load', () => {
-  const splash = document.getElementById('introSplash');
-  if (splash) setTimeout(() => { splash.classList.add('hide'); setTimeout(() => splash.remove(), 600); }, 500);
-});
-
-/* =========================================================
-   Ambient particle canvas
-   ========================================================= */
-(function initParticles(){
-  const canvas = document.getElementById('particles');
-  if (!canvas) return;
+(function() {
+  const canvas = document.getElementById('ambientCanvas');
   const ctx = canvas.getContext('2d');
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let w, h, particles = [];
 
-  function resize(){
+  function resize() {
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
   }
-  function makeParticles(){
-    const count = Math.min(60, Math.floor((w*h)/28000));
-    particles = Array.from({length: count}, () => ({
-      x: Math.random()*w, y: Math.random()*h,
-      r: Math.random()*1.6+0.4,
-      vy: -(Math.random()*0.15+0.03),
-      vx: (Math.random()-0.5)*0.05,
-      hue: Math.random() > 0.5 ? '205,164,52' : '166,143,212',
-      a: Math.random()*0.35+0.08
+  function init() {
+    resize();
+    particles = Array.from({ length: 45 }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: Math.random() * 1.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: -(Math.random() * 0.3 + 0.1),
+      alpha: Math.random() * 0.4 + 0.1
     }));
   }
-  function tick(){
-    ctx.clearRect(0,0,w,h);
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
     particles.forEach(p => {
       p.x += p.vx; p.y += p.vy;
-      if (p.y < -10) p.y = h+10;
-      if (p.x < -10) p.x = w+10;
-      if (p.x > w+10) p.x = -10;
+      if (p.y < 0) p.y = h;
+      if (p.x < 0) p.x = w;
+      if (p.x > w) p.x = 0;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(${p.hue},${p.a})`;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(214, 180, 100, ${p.alpha})`;
       ctx.fill();
     });
-    if (!reduceMotion) requestAnimationFrame(tick);
+    requestAnimationFrame(animate);
   }
-  resize(); makeParticles();
-  if (!reduceMotion) requestAnimationFrame(tick); else tick();
-  window.addEventListener('resize', () => { resize(); makeParticles(); });
+  window.addEventListener('resize', resize);
+  init(); animate();
 })();
 
 /* =========================================================
-   Cursor glow & parallax
+   Mood & Text Stats
    ========================================================= */
-if (window.matchMedia('(hover:hover) and (pointer:fine)').matches){
-  const glow = document.getElementById('cursorGlow');
-  if (glow){
-    document.addEventListener('mousemove', (e) => {
-      glow.style.opacity = '1';
-      glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%,-50%)`;
-    });
-    document.addEventListener('mouseleave', () => { glow.style.opacity = '0'; });
-  }
-  const layers = document.querySelectorAll('.hero-art .layer');
-  document.addEventListener('mousemove', (e) => {
-    const cx = window.innerWidth/2, cy = window.innerHeight/2;
-    const dx = (e.clientX - cx), dy = (e.clientY - cy);
-    layers.forEach(l => {
-      const depth = parseFloat(l.dataset.depth || 0);
-      l.style.transform = `translate(${dx*depth}px, ${dy*depth}px)`;
-    });
-  });
-}
-
-/* =========================================================
-   Scroll progress + reveal-on-scroll
-   ========================================================= */
-const scrollProgress = document.getElementById('scrollProgress');
-window.addEventListener('scroll', () => {
-  const h = document.documentElement;
-  const pct = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
-  if (scrollProgress) scrollProgress.style.width = pct + '%';
-}, { passive:true });
-
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting){
-      entry.target.classList.add('in-view');
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold:0.15 });
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-/* =========================================================
-   Nav toggle
-   ========================================================= */
-const navToggle = document.getElementById('navToggle');
-const navLinks  = document.getElementById('navLinks');
-if (navToggle && navLinks){
-  navToggle.addEventListener('click', () => {
-    const isOpen = navLinks.classList.toggle('open');
-    navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    navToggle.textContent = isOpen ? '✕' : '☰';
-  });
-  navLinks.addEventListener('click', (e) => {
-    if (e.target.tagName === 'A'){
-      navLinks.classList.remove('open');
-      navToggle.setAttribute('aria-expanded', 'false');
-      navToggle.textContent = '☰';
-    }
-  });
-}
-
-/* =========================================================
-   Poem stats
-   ========================================================= */
-const MOOD_WORDS = {
-  Joyful: ['light','laugh','laughing','sun','sunlight','bright','bloom','dance','gold','golden','warm','joy','আনন্দ','আলো','হাসি'],
-  Melancholy: ['grief','gray','ashes','alone','lonely','tears','weep','fading','lost','silence','empty','cold','দুঃখ','বিষাদ','নীরবতা'],
-  Romantic: ['love','heart','kiss','longing','beloved','tender','embrace','whisper','প্রেম','ভালোবাসা','হৃদয়'],
-  Mysterious: ['shadow','shadows','fog','mist','secret','dark','night','veil','আঁধার','ছায়া','রহস্য'],
-  Serene: ['calm','still','quiet','gentle','peace','breeze','drift','stillness','pond','শান্তি','স্থির','নদী'],
-  Turbulent: ['storm','thunder','rage','fire','burning','chaos','wild','fierce','crash','ঝড়','অগ্নি','ঢেউ']
+const MOODS = {
+  Serene: ['pond', 'still', 'calm', 'quiet', 'water', 'gentle', 'leaf', 'peace', 'নদী', 'শান্তি'],
+  Joyful: ['sun', 'gold', 'light', 'laugh', 'bloom', 'dance', 'warm', 'আনন্দ', 'আলো', 'হাসি'],
+  Melancholy: ['tears', 'alone', 'gray', 'fading', 'silence', 'cold', 'grief', 'বিষাদ', 'দুঃখ'],
+  Romantic: ['love', 'heart', 'beloved', 'embrace', 'whisper', 'kiss', 'প্রেম', 'হৃদয়'],
+  Mysterious: ['shadow', 'night', 'mist', 'secret', 'fog', 'dark', 'moon', 'আঁধার', 'ছায়া']
 };
-function detectMood(text){
-  const t = text.toLowerCase();
-  let best = null, bestScore = 0;
-  for (const [name, words] of Object.entries(MOOD_WORDS)){
-    let score = 0;
-    for (const w of words){
-      if (t.includes(w)) score++;
-    }
-    if (score > bestScore){ bestScore = score; best = name; }
-  }
-  return bestScore > 0 ? best : null;
-}
 
-function updateStats(){
+function analyzeText() {
   const text = poemInput.value;
   const chars = text.length;
-  const words = (text.trim().match(/\S+/g) || []).length;
   const lines = (text.trim().match(/[^\r\n]+/g) || []).length;
+  charCount.textContent = `${chars} / 1200 chars`;
+  lineCount.textContent = `${lines} line${lines === 1 ? '' : 's'}`;
 
-  charCount.textContent = `${chars} / ${MAX_CHARS} characters`;
-  charCount.parentElement.classList.toggle('stat-warn', chars > MAX_CHARS);
-  wordCount.textContent = `${words} word${words===1?'':'s'}`;
-  lineCount.textContent = `${lines} line${lines===1?'':'s'}`;
-
-  const mood = detectMood(text);
-  moodPill.dataset.mood = mood || '';
-  moodLabel.textContent = mood ? `Reading: ${mood}` : (text.trim() ? 'Reading: analyzing tone…' : 'Write a line to see a reading');
+  const lower = text.toLowerCase();
+  let detectedMood = "Serene";
+  for (const [mood, keywords] of Object.entries(MOODS)) {
+    if (keywords.some(k => lower.includes(k))) {
+      detectedMood = mood;
+      break;
+    }
+  }
+  moodText.textContent = text.trim() ? `Tone: ${detectedMood}` : 'Write a line…';
 }
-poemInput.addEventListener('input', updateStats);
+poemInput.addEventListener('input', analyzeText);
 poemInput.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault();
-    generateBtn.click();
+    triggerGeneration();
   }
 });
 
 /* =========================================================
-   Examples
+   Style Selector
+   ========================================================= */
+function selectStyle(style) {
+  selectedStyle = style;
+  [...styleSelector.children].forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.style === style);
+  });
+}
+styleSelector.addEventListener('click', (e) => {
+  const btn = e.target.closest('.style-chip');
+  if (btn) selectStyle(btn.dataset.style);
+});
+showcaseCards.addEventListener('click', (e) => {
+  const card = e.target.closest('.showcase-card');
+  if (card) {
+    selectStyle(card.dataset.style);
+    showToast(`Style set to ${card.querySelector('h4').textContent}`);
+    document.getElementById('studio').scrollIntoView({ behavior: 'smooth' });
+  }
+});
+
+/* =========================================================
+   Demo Chips
    ========================================================= */
 const SURPRISE_POEMS = [
   "The last light falls through amber trees,\na river holds the sky's reflection still—\nsomewhere a bell is being rung for no one,\nand the leaves keep letting go, unhurried.",
   "The tide comes in without asking permission,\nfolding the moon into black water.\nSomewhere a lighthouse keeps its one slow promise,\nturning, turning, faithful to no one in particular.",
-  "Clocks melt upon the branches of an amber tree,\nFish with golden wings swim through an emerald sky.\nA door stands upright on the desert sand,\nOpening to an ocean of endless starlight.",
-  "Alone I sit in the dark bamboo grove,\nPlucking my lute, whistling a quiet song.\nIn this deep forest where no one knows I rest,\nThe bright full moon comes to shine upon my chest."
+  "Clocks melt upon the branches of an amber tree,\nFish with golden wings swim through an emerald sky.\nA door stands upright on the desert sand,\nOpening to an ocean of endless starlight."
 ];
-examplesRow.addEventListener('click', (e) => {
-  const chip = e.target.closest('.example-chip');
+demoStrip.addEventListener('click', (e) => {
+  const chip = e.target.closest('.demo-chip');
   if (!chip) return;
   const poem = chip.id === 'surpriseBtn'
-    ? SURPRISE_POEMS[Math.floor(Math.random()*SURPRISE_POEMS.length)]
+    ? SURPRISE_POEMS[Math.floor(Math.random() * SURPRISE_POEMS.length)]
     : chip.dataset.poem;
   poemInput.value = poem.replace(/&#10;/g, '\n');
-  updateStats();
+  analyzeText();
   poemInput.focus();
 });
 
 /* =========================================================
-   Styles & Scene Controls
+   Generation Workflow
    ========================================================= */
-function setStyle(style){
-  selectedStyle = style;
-  [...styleChips.children].forEach(c => c.classList.toggle('active', c.dataset.style === style));
-}
-styleChips.addEventListener('click', (e) => {
-  const chip = e.target.closest('.chip');
-  if (!chip) return;
-  setStyle(chip.dataset.style);
-});
-styleShowcase.addEventListener('click', (e) => {
-  const card = e.target.closest('.style-card');
-  if (!card) return;
-  setStyle(card.dataset.style);
-  showToast(`${labelForStyle(card.dataset.style)} selected`);
-  document.getElementById('compose').scrollIntoView({ behavior:'smooth', block:'center' });
-});
+renderBtn.addEventListener('click', triggerGeneration);
 
-if (sceneChips){
-  sceneChips.addEventListener('click', (e) => {
-    const chip = e.target.closest('.chip');
-    if (!chip) return;
-    forceSingleImage = chip.dataset.single === 'true';
-    btnAutoScenes.classList.toggle('active', !forceSingleImage);
-    btnSingleScene.classList.toggle('active', forceSingleImage);
-  });
-}
-
-/* =========================================================
-   Generate
-   ========================================================= */
-generateBtn.addEventListener('click', generateImages);
-
-async function generateImages(){
+async function triggerGeneration() {
   const poem = poemInput.value.trim();
-  if (!poem){
-    showToast("Write a poem first — even one line works.");
+  if (!poem) {
+    showToast("Please enter a poem to generate art.");
     poemInput.focus();
-    return;
-  }
-  if (poem.length > MAX_CHARS){
-    showToast(`Please trim your poem below ${MAX_CHARS} characters.`);
     return;
   }
 
   setLoading(true);
-  try{
-    const result = await requestImages(poem, selectedStyle, forceSingleImage);
-    currentImages = result.images;
-    renderResult(result);
-    addToHistory(poem, selectedStyle, result);
-    showToast("Your poem has been rendered.");
-  }catch(err){
-    renderError(err.message || "Generation error.");
-  }finally{
+  try {
+    const res = await fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        poem: poem,
+        style: selectedStyle,
+        source_language: "auto",
+        force_single_image: false,
+        enable_refinement: true
+      })
+    });
+
+    if (!res.ok) {
+      let detail = `Error (${res.status})`;
+      try { const err = await res.json(); if (err.detail) detail = err.detail; } catch(e){}
+      throw new Error(detail);
+    }
+
+    const data = await res.json();
+    currentImages = (data.images || []).map(img => img.image_base64 ? `data:${img.mime_type || 'image/png'};base64,${img.image_base64}` : (img.url || img));
+    
+    renderResults(data, currentImages);
+    addToHistory(poem, selectedStyle, currentImages);
+    showToast("Poem successfully illuminated!");
+  } catch (err) {
+    renderError(err.message || "Failed to generate artwork.");
+  } finally {
     setLoading(false);
   }
 }
 
-/* =========================================================
-   Output Rendering
-   ========================================================= */
-function setLoading(isLoading){
-  generateBtn.disabled = isLoading;
-  generateBtnLabel.textContent = isLoading ? "Rendering…" : "Render this poem";
-  if (isLoading){
-    outputMeta.textContent = "";
-    outputBody.style.alignItems = "center";
-    outputBody.innerHTML = `
-      <div class="loading-state">
-        <svg class="ink-loader" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26"></circle></svg>
-        <span class="loading-msg" id="loadingMsg">translating & analyzing tone…</span>
+function setLoading(isLoading) {
+  renderBtn.disabled = isLoading;
+  renderBtnText.textContent = isLoading ? "Illuminating…" : "Render Artwork";
+  if (isLoading) {
+    outputMetaText.textContent = "";
+    outputContentArea.innerHTML = `
+      <div class="loading-container">
+        <div class="pulse-spinner"></div>
+        <div class="loading-msg" id="loadingDynamicMsg">Reading poem &amp; agent synthesis…</div>
       </div>`;
-    cycleLoadingMessages();
+    startLoadingCycle();
   }
 }
-function cycleLoadingMessages(){
-  const msgs = [
-    "translating & reading poetic cadence…",
-    "triggering Emotion, Semantic & Metaphor agents…",
-    "synthesizing visual composition & palette…",
-    "generating high-resolution diffusion artwork…"
+
+function startLoadingCycle() {
+  const messages = [
+    "Gemini poetic cadence analysis…",
+    "Parallel Emotion, Semantic &amp; Metaphor agents running…",
+    "Visual prompt synthesis &amp; alignment…",
+    "Generating diffusion artwork…"
   ];
   let i = 0;
-  const el = document.getElementById('loadingMsg');
-  clearInterval(window.__loadingTimer);
-  window.__loadingTimer = setInterval(() => {
-    if (!el || !document.body.contains(el)){ clearInterval(window.__loadingTimer); return; }
-    i = (i+1) % msgs.length;
-    el.textContent = msgs[i];
+  const msgEl = document.getElementById('loadingDynamicMsg');
+  clearInterval(window.__loaderTimer);
+  window.__loaderTimer = setInterval(() => {
+    if (!msgEl || !document.body.contains(msgEl)) { clearInterval(window.__loaderTimer); return; }
+    i = (i + 1) % messages.length;
+    msgEl.innerHTML = messages[i];
   }, 1800);
 }
 
-function renderResult(res){
-  clearInterval(window.__loadingTimer);
-  const count = res.images.length;
-  outputMeta.textContent = `${count} scene${count===1?'':'s'} · ${labelForStyle(selectedStyle)}`;
+function renderResults(data, images) {
+  clearInterval(window.__loaderTimer);
+  outputMetaText.textContent = `${images.length} Scene${images.length === 1 ? '' : 's'} · ${selectedStyle}`;
   
-  let pillsHTML = "";
-  if (res.segments && res.segments.length > 0){
-    const seg = res.segments[0];
+  let tagsHTML = "";
+  if (data.segments && data.segments.length > 0) {
+    const seg = data.segments[0];
     const em = seg.elements.dominant_emotion || "";
     const th = (seg.elements.theme || "").replace(/_/g, " ");
-    pillsHTML = `
-      <div class="meta-pills">
-        ${em ? `<span class="tag-pill">✨ ${escapeHTML(em)}</span>` : ''}
-        ${th ? `<span class="tag-pill tag-theme">🏷️ ${escapeHTML(th)}</span>` : ''}
-        ${res.translation && res.translation.was_translated ? `<span class="tag-pill">🌐 Translated from ${escapeHTML(res.translation.source_language_name)}</span>` : ''}
+    tagsHTML = `
+      <div class="agent-meta-row">
+        ${em ? `<span class="meta-tag">✨ ${escapeHTML(em)}</span>` : ''}
+        ${th ? `<span class="meta-tag">🏷️ ${escapeHTML(th)}</span>` : ''}
+        ${data.translation && data.translation.was_translated ? `<span class="meta-tag">🌐 ${escapeHTML(data.translation.source_language_name)}</span>` : ''}
       </div>`;
   }
 
-  outputBody.style.alignItems = "stretch";
-  outputBody.innerHTML = `
-    <div style="width:100%;">
-      ${pillsHTML}
-      <div class="output-toolbar">
-        <button class="icon-btn" id="regenBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M5 15a8 8 0 0014 3M19 9A8 8 0 005 6"/></svg>Regenerate</button>
-        <button class="icon-btn" id="copyPoemBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M4 16V4h12"/></svg>Copy poem</button>
-        <button class="icon-btn" id="shareBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="2.2"/><circle cx="6" cy="12" r="2.2"/><circle cx="18" cy="19" r="2.2"/><path d="M8 10.8l8-4.6M8 13.2l8 4.6"/></svg>Share</button>
-      </div>
-      <div class="gallery-grid">${res.images.map(src => frameHTML(src)).join('')}</div>
-    </div>`;
-}
-
-function renderError(message){
-  clearInterval(window.__loadingTimer);
-  outputMeta.textContent = "";
-  outputBody.style.alignItems = "center";
-  outputBody.innerHTML = `
-    <div class="error-state">
-      <p><strong>Generation failed.</strong></p>
-      <p style="margin-top:8px;">${escapeHTML(message)}</p>
-    </div>`;
-}
-
-function frameHTML(src){
-  return `
-    <div class="frame">
-      <img src="${escapeAttr(src)}" alt="Versilume AI artwork" loading="lazy">
-      <div class="frame-actions">
-        <button class="dl-btn" data-src="${escapeAttr(src)}" title="Download artwork" aria-label="Download">⬇</button>
+  outputContentArea.innerHTML = `
+    <div style="width: 100%;">
+      ${tagsHTML}
+      <div class="gallery-layout">
+        ${images.map(src => `
+          <div class="art-frame">
+            <img src="${escapeAttr(src)}" alt="Artwork" loading="lazy" onclick="openLightbox('${escapeAttr(src)}')">
+            <div class="art-overlay">
+              <button class="art-dl-btn" onclick="downloadImage('${escapeAttr(src)}')">⬇</button>
+            </div>
+          </div>
+        `).join('')}
       </div>
     </div>`;
 }
 
-outputBody.addEventListener('click', (e) => {
-  if (e.target.closest('#regenBtn')){ generateImages(); return; }
-  if (e.target.closest('#copyPoemBtn')){ copyPoem(); return; }
-  if (e.target.closest('#shareBtn')){ sharePoem(); return; }
+function renderError(msg) {
+  clearInterval(window.__loaderTimer);
+  outputContentArea.innerHTML = `
+    <div style="color:#e06c75; font-size:0.9rem;">
+      <p><strong>Generation failed</strong></p>
+      <p style="margin-top:4px; font-size:0.82rem; color:var(--text-muted);">${escapeHTML(msg)}</p>
+    </div>`;
+}
 
-  const dl = e.target.closest('.dl-btn');
-  if (dl){ e.stopPropagation(); downloadImage(dl.dataset.src); return; }
+/* History */
+function addToHistory(poem, style, images) {
+  sessionHistory.unshift({ poem, style, images });
+  if (sessionHistory.length === 1) historyGrid.innerHTML = "";
+  
+  const card = document.createElement('div');
+  card.className = "art-frame";
+  card.style.height = "160px";
+  card.innerHTML = `<img src="${escapeAttr(images[0])}" alt="History Artwork" onclick="openLightbox('${escapeAttr(images[0])}')">`;
+  historyGrid.prepend(card);
+}
 
-  const frame = e.target.closest('.frame');
-  if (frame){
-    const img = frame.querySelector('img');
-    lightboxIndex = currentImages.indexOf(img.getAttribute('src'));
-    if (lightboxIndex < 0) lightboxIndex = 0;
-    openLightbox();
-  }
-});
+/* Lightbox & Downloads */
+function openLightbox(src) {
+  lightboxImage.src = src;
+  lightboxModal.classList.add('open');
+}
+lightboxClose.addEventListener('click', () => lightboxModal.classList.remove('open'));
+lightboxModal.addEventListener('click', (e) => { if (e.target === lightboxModal) lightboxModal.classList.remove('open'); });
 
-historyGrid.addEventListener('click', (e) => {
-  const frame = e.target.closest('.frame');
-  if (!frame) return;
-  const card = frame.closest('.history-card');
-  const idx = parseInt(card.dataset.idx, 10);
-  const entry = history[idx];
-  currentImages = entry.images;
-  lightboxIndex = 0;
-  openLightbox();
-});
-
-function downloadImage(src){
+function downloadImage(src) {
   const a = document.createElement('a');
   a.href = src; a.download = "versilume-artwork.png";
   document.body.appendChild(a); a.click(); a.remove();
 }
-function copyPoem(){
-  navigator.clipboard.writeText(poemInput.value).then(() => showToast("Poem copied to clipboard."));
-}
-function sharePoem(){
-  const text = poemInput.value.trim();
-  if (navigator.share){
-    navigator.share({ title:"Versilume Poem Art", text }).catch(() => {});
-  }else{
-    navigator.clipboard.writeText(text).then(() => showToast("Poem copied to clipboard."));
-  }
+
+/* Toast */
+let toastTimeout;
+function showToast(msg) {
+  toastPill.textContent = msg;
+  toastPill.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toastPill.classList.remove('show'), 2400);
 }
 
-/* =========================================================
-   History Gallery
-   ========================================================= */
-function addToHistory(poem, style, res){
-  history.unshift({ poem, style, images: res.images });
-  renderHistory();
-}
-function renderHistory(){
-  if (!history.length) return;
-  historyGrid.innerHTML = history.map((entry, idx) => `
-    <div class="history-card" data-idx="${idx}">
-      <div class="frame"><img src="${escapeAttr(entry.images[0])}" alt="Artwork from poem" loading="lazy"></div>
-      <div class="history-meta">
-        <p class="history-poem">${escapeHTML(entry.poem.split('\n')[0])}</p>
-        <p class="history-style">${labelForStyle(entry.style)} · ${entry.images.length} scene${entry.images.length===1?'':'s'}</p>
-      </div>
-    </div>
-  `).join('');
-}
-
-/* =========================================================
-   Lightbox
-   ========================================================= */
-function openLightbox(){
-  lightboxImg.src = currentImages[lightboxIndex];
-  lightbox.classList.add('open');
-  const multi = currentImages.length > 1;
-  lightboxPrev.style.display = multi ? 'flex' : 'none';
-  lightboxNext.style.display = multi ? 'flex' : 'none';
-}
-function closeLightbox(){ lightbox.classList.remove('open'); lightboxImg.src = ""; }
-function stepLightbox(dir){
-  if (!currentImages.length) return;
-  lightboxIndex = (lightboxIndex + dir + currentImages.length) % currentImages.length;
-  lightboxImg.src = currentImages[lightboxIndex];
-}
-lightboxClose.addEventListener('click', closeLightbox);
-lightboxPrev.addEventListener('click', () => stepLightbox(-1));
-lightboxNext.addEventListener('click', () => stepLightbox(1));
-lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
-document.addEventListener('keydown', (e) => {
-  if (!lightbox.classList.contains('open')) return;
-  if (e.key === 'Escape') closeLightbox();
-  if (e.key === 'ArrowLeft') stepLightbox(-1);
-  if (e.key === 'ArrowRight') stepLightbox(1);
-});
-
-/* =========================================================
-   FAQ
-   ========================================================= */
-document.getElementById('faqList').addEventListener('click', (e) => {
-  const q = e.target.closest('.faq-q');
-  if (!q) return;
-  q.closest('.faq-item').classList.toggle('open');
-});
-
-/* =========================================================
-   Toast
-   ========================================================= */
-let toastTimer;
-function showToast(msg){
-  toastEl.textContent = msg;
-  toastEl.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
-}
-
-/* =========================================================
-   Utilities
-   ========================================================= */
-function labelForStyle(key){
-  const map = { "watercolor":"Watercolor","oil-painting":"Oil Painting","ink-sketch":"Ink Sketch","photorealistic":"Photorealistic","surreal":"Surreal","ukiyo-e":"Ukiyo-e" };
-  return map[key] || key;
-}
-function escapeHTML(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
-function escapeAttr(str){ return String(str).replace(/"/g, '&quot;'); }
+function escapeHTML(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
 </script>
 
 </body>
