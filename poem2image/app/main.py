@@ -25,6 +25,6 @@ app.add_middleware(
 app.include_router(router, prefix="/api/v1")
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def root() -> dict:
-    return {"service": "versilume", "docs": "/docs"}
+    return {"service": "versilume", "status": "online", "docs": "/docs"}

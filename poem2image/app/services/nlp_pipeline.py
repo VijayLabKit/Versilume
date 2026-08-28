@@ -234,21 +234,23 @@ classify_emotion = classify_emotion_heuristic
 
 
 def assign_theme(text: str) -> tuple[str, float]:
-    """Cosine-similarity theme assignment against the (possibly calibrated) theme bank."""
-    text = text.strip()
+    """Fast lexical theme assignment against THEME_BANK with zero memory overhead."""
+    text = (text or "").strip().lower()
     if not text:
         return "nature", 0.0
 
-    encoder = _get_sentence_encoder()
-    theme_vectors = _get_theme_embeddings()
-    query_vec = encoder.encode([text], normalize_embeddings=True)[0]
+    words = set(re.findall(r"\w+", text))
+    best_theme, best_score = "nature", 0.1
 
-    best_theme, best_score = "nature", -1.0
-    for theme_name, theme_vec in theme_vectors.items():
-        score = float(np.dot(query_vec, theme_vec))
-        if score > best_score:
-            best_theme, best_score = theme_name, score
-    return best_theme, best_score
+    for theme_name, keywords_str in THEME_BANK.items():
+        kw_set = set(re.findall(r"\w+", keywords_str.lower()))
+        common = len(words & kw_set)
+        if common > 0:
+            score = common / (len(words) + len(kw_set))
+            if score > best_score:
+                best_theme, best_score = theme_name, score
+
+    return best_theme, min(0.95, 0.4 + (best_score * 3.0))
 
 
 def extract_visual_elements_heuristic(text: str, max_elements: int = 6) -> List[str]:
@@ -257,41 +259,43 @@ def extract_visual_elements_heuristic(text: str, max_elements: int = 6) -> List[
     if not text:
         return []
 
-    nlp = _get_spacy_nlp()
-    doc = nlp(text)
+    try:
+        nlp = _get_spacy_nlp()
+        doc = nlp(text)
 
-    elements: list[str] = []
-    seen: set[str] = set()
+        elements: list[str] = []
+        seen: set[str] = set()
 
-    stop_nouns = {
-        "world", "thing", "way", "place", "part", "side", "time", "day", "night",
-        "someone", "everyone", "nobody", "bit", "lot", "kind", "line", "word", "hand", "foot",
-        "how", "what", "when", "where", "twinkle", "fall", "great fall", "action",
-    }
+        stop_nouns = {
+            "world", "thing", "way", "place", "part", "side", "time", "day", "night",
+            "someone", "everyone", "nobody", "bit", "lot", "kind", "line", "word", "hand", "foot",
+            "how", "what", "when", "where", "twinkle", "fall", "great fall", "action",
+        }
 
-    lower_text = text.lower()  # noqa: F841 (used implicitly by spaCy; kept for parity)
-
-    for ent in doc.ents:
-        raw_ent = re.sub(r"[\r\n,;:\.\?\!]+", " ", ent.text).strip()
-        raw_ent = re.sub(r"\s+", " ", raw_ent)
-        key = raw_ent.lower()
-        if key and key not in seen and key not in stop_nouns and len(key) > 2:
-            elements.append(raw_ent)
-            seen.add(key)
-
-    for chunk in doc.noun_chunks:
-        head = chunk.root
-        if head.pos_ in ("NOUN", "PROPN"):
-            raw_chunk = re.sub(r"[\r\n,;:\.\?\!]+", " ", chunk.text).strip()
-            raw_chunk = re.sub(r"\s+", " ", raw_chunk)
-            key = raw_chunk.lower()
-            key = re.sub(r"^(the|a|an|your|my|his|her|its|our|their|this|that)\s+", "", key)
-            key = re.sub(r"\s+(how|when|what|where|who|why|if|then|and|or|but|as|so)$", "", key).strip()
-            if key and key not in seen and len(key) > 2 and key not in stop_nouns:
-                elements.append(key)
+        for ent in doc.ents:
+            raw_ent = re.sub(r"[\r\n,;:\.\?\!]+", " ", ent.text).strip()
+            raw_ent = re.sub(r"\s+", " ", raw_ent)
+            key = raw_ent.lower()
+            if key and key not in seen and key not in stop_nouns and len(key) > 2:
+                elements.append(raw_ent)
                 seen.add(key)
 
-    return elements[:max_elements]
+        for chunk in doc.noun_chunks:
+            head = chunk.root
+            if head.pos_ in ("NOUN", "PROPN"):
+                raw_chunk = re.sub(r"[\r\n,;:\.\?\!]+", " ", chunk.text).strip()
+                raw_chunk = re.sub(r"\s+", " ", raw_chunk)
+                key = raw_chunk.lower()
+                key = re.sub(r"^(the|a|an|your|my|his|her|its|our|their|this|that)\s+", "", key)
+                key = re.sub(r"\s+(how|when|what|where|who|why|if|then|and|or|but|as|so)$", "", key).strip()
+                if key and key not in seen and len(key) > 2 and key not in stop_nouns:
+                    elements.append(key)
+                    seen.add(key)
+
+        return elements[:max_elements] if elements else [w for w in re.findall(r"\w+", text) if len(w) > 3][:4]
+    except Exception as exc:
+        logger.warning("spaCy extraction fallback: %s", exc)
+        return [w for w in re.findall(r"\w+", text) if len(w) > 3][:4]
 
 
 # Backward-compatible alias
@@ -301,32 +305,33 @@ extract_visual_elements = extract_visual_elements_heuristic
 async def extract_elements(text: str, language: str = "English") -> "ExtractedElements":
     """
     Full extraction pipeline for one segment.
-    Runs local heuristics first, then fires all 3 agents concurrently.
-    Agent results override heuristics per-field; any failed agent falls back to its heuristic slot.
+    Runs cloud LLM agents first (fast, rich, 0MB RAM).
+    Falls back to lightweight heuristics only if an agent fails.
     """
     from app.models.schemas import ExtractedElements
     from app.services.agents.orchestrator import run_agents
 
-    # ── Step 1: local heuristics (fast, always available) ─────────────────
     summary = summarize(text)
-    heuristic_emotion, heuristic_scores = classify_emotion_heuristic(text)
-    heuristic_theme, theme_score = assign_theme(text)
-    heuristic_visuals = extract_visual_elements_heuristic(text)
 
-    # ── Step 2: run agents concurrently with language context ─────────────
+    # ── Step 1: Run agents concurrently (fast cloud LLMs) ─────────────────
     agent_result = await run_agents(text, language=language)
 
-    # ── Step 3: merge — agent wins per-field if it ran successfully ────────
-    final_emotion = agent_result.emotion
-    final_scores = dict(heuristic_scores)
-    final_scores[final_emotion] = max(final_scores.get(final_emotion, 0.0), agent_result.emotion_intensity)
+    # ── Step 2: Resolve emotion ───────────────────────────────────────────
+    if agent_result.emotion_source == "agent":
+        final_emotion = agent_result.emotion
+        final_scores = {final_emotion: agent_result.emotion_intensity}
+    else:
+        final_emotion, final_scores = classify_emotion_heuristic(text)
 
-    final_theme = agent_result.theme
-    # Re-compute theme_score via cosine similarity if agent overrode the theme
-    if agent_result.semantic_source == "agent" and agent_result.theme != heuristic_theme:
-        _, theme_score = assign_theme(agent_result.theme)
+    # ── Step 3: Resolve theme ─────────────────────────────────────────────
+    if agent_result.semantic_source == "agent":
+        final_theme = agent_result.theme
+        theme_score = 0.88
+    else:
+        final_theme, theme_score = assign_theme(text)
 
-    final_visuals = agent_result.visuals if agent_result.visuals else heuristic_visuals
+    # ── Step 4: Resolve visuals ───────────────────────────────────────────
+    final_visuals = agent_result.visuals if agent_result.visual_source == "agent" else extract_visual_elements_heuristic(text)
 
     return ExtractedElements(
         summary=summary,
