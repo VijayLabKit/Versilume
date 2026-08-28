@@ -736,12 +736,14 @@
       <p>Enter your poem or try one of the quick samples below.</p>
     </div>
 
-    <!-- Quick Demo Chips -->
+    <!-- Quick Demo Chips in Original Languages -->
     <div class="demo-strip" id="demoStrip">
-      <button class="demo-chip" data-poem="An ancient silent pond,&#10;A green frog leaps into the water,&#10;A deep resonance of stillness.">Silent Pond (Bashō)</button>
-      <button class="demo-chip" data-poem="The starry night unrolls its velvet deep,&#10;A silver crescent watches over sleep.&#10;Whispers of wind through ancient willow boughs,&#10;As dreaming hills renew their quiet vows.">Velvet Night</button>
-      <button class="demo-chip" data-poem="Fierce black waves crash against the towering stone,&#10;The lighthouse beam pierces the dark alone.&#10;&#10;Then golden dawn breaks through the misty gray,&#10;The tempest sighs and slowly drifts away.">Storm &amp; Dawn</button>
-      <button class="demo-chip" data-poem="আমার এই পথ চাওয়াতেই আনন্দ।&#10;খেলে যায় রৌদ্রছায়া, বর্ষা আসে বসন্ত।&#10;বাতাস আসে মেঘের খবর নিয়ে,&#10;পরান আমার নাচে রে সেই গানে মেতে।">পথ চাওয়া (Tagore)</button>
+      <button class="demo-chip" data-poem="古池や&#10;蛙飛びこむ&#10;水の音">🇯🇵 古池や (Bashō)</button>
+      <button class="demo-chip" data-poem="মেঘের কোলে রোদ হেসেছে, বাদল গেছে টুটি।&#10;আজ আমাদের ছুটি ও ভাই, আজ আমাদের ছুটি।&#10;কী করি আজ ভেবে না পাই, পথ হারিয়ে কোন বনে যাই,&#10;কোন মাঠে যে ছুটে বেড়াই সকল ছেলে জুটি।">🇧🇩 মেঘের কোলে (Tagore)</button>
+      <button class="demo-chip" data-poem="अग्नि पथ, अग्नि पथ, अग्नि पथ।&#10;वृक्ष हों भले खड़े, हों घने, हों बड़े,&#10;एक पत्र-छाहँ भी माँग मत।&#10;कर शपथ, कर शपथ, कर शपथ।">🇮🇳 अग्नि पथ (Bachchan)</button>
+      <button class="demo-chip" data-poem="Verde que te quiero verde.&#10;Verde viento. Verdes ramas.&#10;El barco sobre la mar&#10;y el caballo en la montaña.">🇪🇸 Verde que te quiero (Lorca)</button>
+      <button class="demo-chip" data-poem="La musique souvent me prend comme une mer!&#10;Vers ma pâle étoile,&#10;Sous un plafond de brume ou dans un vaste éther,&#10;Je mets à la voile.">🇫🇷 La Musique (Baudelaire)</button>
+      <button class="demo-chip" data-poem="من مست و تو دیوانه، ما را که برد خانه؟&#10;صد بار تو را گفتم کم خور دو سه پیمانه.&#10;در شهر یکی کس را هشیار نمی‌بینم،&#10;هر یک بتر از دیگر، شوریده و دیوانه.">🇮🇷 دیوان شمس (Rumi)</button>
       <button class="demo-chip surprise" id="surpriseBtn">🎲 Surprise Me</button>
     </div>
 
@@ -1062,9 +1064,14 @@ showcaseCards.addEventListener('click', (e) => {
    Demo Chips
    ========================================================= */
 const SURPRISE_POEMS = [
-  "The last light falls through amber trees,\na river holds the sky's reflection still—\nsomewhere a bell is being rung for no one,\nand the leaves keep letting go, unhurried.",
-  "The tide comes in without asking permission,\nfolding the moon into black water.\nSomewhere a lighthouse keeps its one slow promise,\nturning, turning, faithful to no one in particular.",
-  "Clocks melt upon the branches of an amber tree,\nFish with golden wings swim through an emerald sky.\nA door stands upright on the desert sand,\nOpening to an ocean of endless starlight."
+  "古池や\n蛙飛びこむ\n水の音",
+  "Herr: es ist Zeit. Der Sommer war sehr groß.\nLeg deinen Schatten auf die Sonnenuhren,\nund auf den Fluren laß die Winde los.",
+  "মেঘের কোলে রোদ হেসেছে, বাদল গেছে টুটি।\nআজ আমাদের ছুটি ও ভাই, আজ আমাদের ছুটি।\nকী করি আজ ভেবে না পাই, পথ হারিয়ে কোন বনে যাই,\nকোন মাঠে যে ছুটে বেড়াই সকল ছেলে জুটি।",
+  "من مست و تو دیوانه، ما را که برد خانه؟\nصد بار تو را گفتم کم خور دو سه پیمانه.\nدر شهر یکی کس را هشیار نمی‌بینم،\nهر یک بتر از دیگر، شوریده و دیوانه.",
+  "Verde que te quiero verde.\nVerde viento. Verdes ramas.\nEl barco sobre la mar\ny el caballo en la montaña.",
+  "अग्नि पथ, अग्नि पथ, अग्नि पथ।\nवृक्ष हों भले खड़े, हों घने, हों बड़े,\nएक पत्र-छाहँ भी माँग मत।\nकर शपथ, कर शपथ, कर शपथ।",
+  "La musique souvent me prend comme une mer!\nVers ma pâle étoile,\nSous un plafond de brume ou dans un vaste éther,\nJe mets à la voile.",
+  "The last light falls through amber trees,\na river holds the sky's reflection still—\nsomewhere a bell is being rung for no one,\nand the leaves keep letting go, unhurried."
 ];
 demoStrip.addEventListener('click', (e) => {
   const chip = e.target.closest('.demo-chip');
