@@ -204,29 +204,13 @@ def summarize(text: str) -> str:
 
 
 def classify_emotion_heuristic(text: str) -> tuple[str, dict[str, float]]:
-    """Synchronous emotion classification using DistilRoBERTa + poetic harmonizer."""
-    text_clean = text.strip()
+    """Instant lexical emotion classification (0MB RAM, <1ms)."""
+    text_clean = (text or "").strip()
     if not text_clean:
         return "tranquility", {"tranquility": 1.0}
 
-    try:
-        classifier = _get_emotion_classifier()
-        raw = classifier(text_clean)[0]
-        raw_scores = {item["label"]: float(item["score"]) for item in raw}
-        raw_dominant = max(raw_scores, key=raw_scores.get)
-    except Exception as exc:
-        logger.warning("Emotion classifier fallback triggered: %s", exc)
-        raw_scores = {"neutral": 0.6, "joy": 0.2, "surprise": 0.2}
-        raw_dominant = "neutral"
-
-    settings = get_settings()
-    if not settings.use_expanded_emotion_palette:
-        return raw_dominant, raw_scores
-
-    refined_label, confidence = _harmonize_emotion(raw_dominant, raw_scores, text_clean.lower())
-    scores = dict(raw_scores)
-    scores[refined_label] = confidence
-    return refined_label, scores
+    refined_label, confidence = _harmonize_emotion("neutral", {"neutral": 0.6}, text_clean.lower())
+    return refined_label, {refined_label: confidence}
 
 
 # Alias kept for backward compatibility with segmentation.py
