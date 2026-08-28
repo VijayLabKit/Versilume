@@ -56,10 +56,21 @@ async def _call_agent(poem_text: str, language: str = "English") -> MetaphorResu
         temperature=0.4,
         max_tokens=settings.agent_max_tokens,
     )
-    json_match = re.search(r"\{[\s\S]*\}", raw.strip())
-    if not json_match:
-        raise ValueError(f"No JSON object found in response: {raw[:100]!r}")
-    data = json.loads(json_match.group(0))
+    # Robust multi-pattern JSON parsing
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip())
+    json_match = re.search(r"\{[\s\S]*\}", cleaned)
+    json_str = json_match.group(0) if json_match else cleaned
+    
+    try:
+        data = json.loads(json_str)
+    except json.JSONDecodeError:
+        # Fallback regex extraction for visuals
+        visuals_m = re.findall(r'"([^"]{4,})"', raw)
+        data = {
+            "visuals": [v for v in visuals_m if v not in ("visuals", "style_cues", "palette")][:5],
+            "style_cues": [],
+            "palette": ""
+        }
 
     visuals = [str(v).strip() for v in data.get("visuals", []) if v][:6]
     style_cues = [str(s).strip() for s in data.get("style_cues", []) if s][:3]

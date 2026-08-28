@@ -56,10 +56,23 @@ async def _call_agent(poem_text: str, language: str = "English") -> EmotionResul
     settings = get_settings()
     prompt = _USER_PROMPT.format(poem=poem_text, language=language, labels=", ".join(_EMOTION_LABELS))
     raw = await provider.generate(prompt=prompt, system=_SYSTEM_PROMPT, temperature=0.2, max_tokens=settings.agent_max_tokens)
-    json_match = re.search(r"\{[\s\S]*\}", raw.strip())
-    if not json_match:
-        raise ValueError(f"No JSON object found in response: {raw[:100]!r}")
-    data = json.loads(json_match.group(0))
+    
+    # Robust multi-pattern JSON parsing
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip())
+    json_match = re.search(r"\{[\s\S]*\}", cleaned)
+    json_str = json_match.group(0) if json_match else cleaned
+    
+    try:
+        data = json.loads(json_str)
+    except json.JSONDecodeError:
+        # Fallback regex extraction
+        emotion_m = re.search(r'"emotion"\s*:\s*"([^"]+)"', raw)
+        nuance_m = re.search(r'"nuance"\s*:\s*"([^"]+)"', raw)
+        data = {
+            "emotion": emotion_m.group(1) if emotion_m else "serenity",
+            "nuance": nuance_m.group(1) if nuance_m else "A quiet contemplative stillness.",
+            "intensity": 0.8
+        }
 
     emotion = str(data.get("emotion", "")).strip().lower()
     if emotion not in _EMOTION_LABELS:

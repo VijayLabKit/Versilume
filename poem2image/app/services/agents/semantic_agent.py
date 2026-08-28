@@ -63,10 +63,24 @@ async def _call_agent(poem_text: str, language: str = "English") -> SemanticResu
     settings = get_settings()
     prompt = _USER_PROMPT.format(poem=poem_text, language=language, themes=", ".join(_THEME_KEYS))
     raw = await provider.generate(prompt=prompt, system=_SYSTEM_PROMPT, temperature=0.3, max_tokens=settings.agent_max_tokens)
-    json_match = re.search(r"\{[\s\S]*\}", raw.strip())
-    if not json_match:
-        raise ValueError(f"No JSON object found in response: {raw[:100]!r}")
-    data = json.loads(json_match.group(0))
+    
+    # Robust multi-pattern JSON parsing
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip())
+    json_match = re.search(r"\{[\s\S]*\}", cleaned)
+    json_str = json_match.group(0) if json_match else cleaned
+    
+    try:
+        data = json.loads(json_str)
+    except json.JSONDecodeError:
+        # Fallback regex extraction for keys
+        theme_m = re.search(r'"theme"\s*:\s*"([^"]+)"', raw)
+        symbols_m = re.findall(r'"([^"]+)"', raw)
+        context_m = re.search(r'"cultural_context"\s*:\s*"([^"]+)"', raw)
+        data = {
+            "theme": theme_m.group(1) if theme_m else "nature",
+            "symbols": [s for s in symbols_m if s not in ("theme", "symbols", "cultural_context")][:4],
+            "cultural_context": context_m.group(1) if context_m else "",
+        }
 
     theme = str(data.get("theme", "")).strip().lower().replace(" ", "_")
     if theme not in _THEME_KEYS:

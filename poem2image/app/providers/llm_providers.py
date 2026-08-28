@@ -20,7 +20,7 @@ class GeminiProvider(LLMProvider):
         prompt: str,
         system: str | None = None,
         temperature: float = 0.7,
-        max_tokens: int = 400,
+        max_tokens: int = 1200,
     ) -> str:
         if not self.api_key:
             raise ProviderUnavailableError("GEMINI_API_KEY is not set.")
@@ -94,7 +94,7 @@ class HuggingFaceLLMProvider(LLMProvider):
         prompt: str,
         system: str | None = None,
         temperature: float = 0.7,
-        max_tokens: int = 400,
+        max_tokens: int = 1200,
     ) -> str:
         if not self.api_key:
             raise ProviderUnavailableError("HF_API_TOKEN is not set.")
