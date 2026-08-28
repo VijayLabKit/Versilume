@@ -3,36 +3,36 @@ from __future__ import annotations
 from app.models.schemas import ExtractedElements
 
 _THEME_MOOD_HINTS: dict[str, str] = {
-    "celestial_and_cosmos": "deep night sky, glowing starry atmosphere, luminous celestial radiance",
+    "celestial_and_cosmos": "deep night sky, glowing starry atmosphere, luminous moonlight radiance",
     "wonder_and_magic": "magical glowing particles, enchanting twilight atmosphere, sparkling wonder",
-    "peace_and_serenity": "gentle tranquil ambient light, soothing serene atmosphere, quiet harmony",
-    "nature": "natural light, organic textures, wide open landscape composition",
+    "peace_and_serenity": "gentle tranquil ambient light, soothing serene atmosphere, crystal clear water reflections",
+    "nature": "golden natural sunlight, lush vibrant scenery, scenic landscape composition",
     "childhood_and_nostalgia": "soft golden-hour storybook light, nostalgic warm tone",
     "dreams_and_fantasy": "ethereal mystical lighting, dreamlike floating atmosphere, surreal beauty",
     "love": "warm intimate lighting, soft romantic focus, tender golden glow",
     "hope_and_resilience": "golden dawn light breaking through, uplifting vibrant composition",
     "joy_and_celebration": "bright vibrant cheerful colors, radiant joyous composition",
     "time_and_mortality": "long dramatic shadows, warm autumnal or twilight tones",
-    "solitude_and_isolation": "empty tranquil negative space, peaceful stillness, quiet contemplative tone",
+    "solitude_and_isolation": "expansive landscape, peaceful stillness, quiet contemplative tone",
     "loss_and_grief": "muted soft colors, quiet atmospheric mist, somber stillness",
     "war_and_conflict": "dramatic shadow and smoke, dynamic tense composition",
     "friendship_and_companionship": "warm shared light, close natural composition, inviting camaraderie",
     "family_and_home": "cozy interior warmth, soft hearth light, intimate domestic detail",
-    "identity_and_self_discovery": "reflective symmetrical composition, mirrored light, introspective mood",
+    "identity_and_self_discovery": "reflective luminous atmosphere, introspective mood",
     "freedom_and_rebellion": "wide open sky, wind-swept motion, dynamic liberated composition",
-    "seasons_and_cycles": "seasonal color palette, transitional light, cyclical natural detail",
-    "urban_and_modern_life": "neon-lit streets, reflective glass, modern metropolitan atmosphere",
+    "seasons_and_cycles": "seasonal color palette, transitional light, lush natural detail",
+    "urban_and_modern_life": "neon-lit street atmosphere, reflective glass, vibrant city night",
     "myth_and_folklore": "epic legendary lighting, storybook grandeur, timeless mythic atmosphere",
     "spirituality_and_faith": "soft sacred light rays, reverent atmosphere, gentle divine glow",
-    "travel_and_journey": "expansive open-road composition, distant horizon, wandering light",
+    "travel_and_journey": "scenic open pathway, distant horizon, wandering sunlight",
     "innocence_and_purity": "soft pastel light, gentle untouched clarity, delicate composition",
     "melancholy_and_longing": "muted cool tones, wistful hazy light, quiet yearning atmosphere",
     "courage_and_heroism": "bold dramatic lighting, heroic silhouette, resolute composition",
     "beauty_and_aesthetics": "elegant refined lighting, graceful composition, exquisite detail",
-    "chaos_and_disorder": "swirling dynamic energy, fractured composition, turbulent atmosphere",
+    "chaos_and_disorder": "swirling dynamic energy, turbulent atmosphere",
     "gratitude_and_abundance": "warm golden harvest light, generous rich composition",
     "justice_and_morality": "stark contrasting light and shadow, balanced symbolic composition",
-    "technology_and_progress": "sleek futuristic lighting, precise geometric composition, cool metallic tones",
+    "technology_and_progress": "sleek glowing illumination, modern aesthetics",
 }
 
 _STYLE_SUFFIX = (
@@ -58,49 +58,34 @@ def build_image_prompt(
     style_suffix: str = _STYLE_SUFFIX,
 ) -> str:
     """Build a concrete diffusion prompt with authentic cultural grounding from extracted poem elements and agent outputs."""
-    import re
-
-    visuals = ", ".join(elements.visual_elements) if elements.visual_elements else "an evocative symbolic scene"
-    theme_clean = elements.theme.replace("_", " ")
+    visuals = ", ".join(elements.visual_elements) if elements.visual_elements else "an evocative poetic scene"
     mood_hint = _THEME_MOOD_HINTS.get(elements.theme, "atmospheric, emotionally resonant lighting")
-
-    if elements.emotion_nuance:
-        emotion_line = f"Atmosphere & Mood: {elements.emotion_nuance}"
-    else:
-        emotion_line = f"Mood: {elements.dominant_emotion}, theme of {theme_clean}"
+    style_hint = _STYLE_KEYWORD_MAP.get((style or "").lower().strip(), "")
 
     # Cultural grounding anchor
     cultural_parts = []
     if elements.cultural_context:
-        cultural_parts.append(f"Cultural setting: {elements.cultural_context}.")
+        cultural_parts.append(f"Authentic {elements.cultural_context}.")
     elif language and language.lower() != "english":
         cultural_parts.append(
-            f"Authentic {language} regional setting with traditional {language} architecture, clothing, and landscape details."
+            f"Authentic {language} regional setting with traditional {language} architecture, clothing, and natural landscape."
         )
 
-    style_hint = _STYLE_KEYWORD_MAP.get((style or "").lower().strip(), "")
-
-    summary_clean = re.sub(r"[\r\n]+", " ", elements.summary or "").strip()
-    summary_clean = re.sub(r"\s+", " ", summary_clean).rstrip(".")
-    summary_part = f"{summary_clean}. " if summary_clean and summary_clean != visuals else ""
-
-    symbol_part = "Key symbolic imagery: " + ", ".join(elements.symbols[:4]) + "." if elements.symbols else ""
-    style_cue_part = "; ".join(elements.style_cues[:3]) + "." if elements.style_cues else ""
-    palette_part = f"Colour palette: {elements.palette}." if elements.palette else ""
+    style_cue_part = "; ".join(elements.style_cues[:2]) if elements.style_cues else ""
+    palette_part = f"Colour palette of {elements.palette}." if elements.palette else ""
+    emotion_part = f"Atmosphere: {elements.emotion_nuance}." if elements.emotion_nuance else f"Mood: {elements.dominant_emotion}."
 
     prompt_parts = [
-        f"A breathtaking, vivid artwork depicting {visuals}.",
+        f"{style_hint}," if style_hint else "",
+        f"A breathtaking, detailed visual scene depicting {visuals}.",
         " ".join(cultural_parts),
-        summary_part,
-        f"{emotion_line}.",
-        symbol_part,
-        f"{mood_hint}.",
+        emotion_part,
+        mood_hint,
         palette_part,
         style_cue_part,
-        f"{style_hint}." if style_hint else "",
         style_suffix,
     ]
-    return " ".join(p for p in prompt_parts if p).strip()
+    return " ".join(p.strip() for p in prompt_parts if p.strip()).strip()
 
 
 def build_negative_prompt() -> str:
