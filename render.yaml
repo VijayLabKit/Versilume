@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: versilume-backend
+    env: python
+    rootDir: poem2image
+    plan: free
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt && python -m spacy download en_core_web_sm"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: HF_API_TOKEN
+        sync: false
+      - key: MODEL_PROVIDER
+        value: gemini
+      - key: MODEL_NAME
+        value: gemini-3.7-flash
+      - key: IMAGE_MODEL_PROVIDER
+        value: huggingface,pollinations
+      - key: IMAGE_MODEL_NAME
+        value: black-forest-labs/FLUX.1-schnell
+      - key: AGENTS_ENABLED
+        value: "true"
+      - key: EMOTION_AGENT_MODEL
+        value: meta-llama/Llama-3.1-8B-Instruct
+      - key: SEMANTIC_AGENT_MODEL
+        value: meta-llama/Llama-3.1-8B-Instruct
+      - key: METAPHOR_AGENT_MODEL
+        value: meta-llama/Llama-3.1-8B-Instruct
+      - key: PROMPT_REFINEMENT_ENABLED
+        value: "true"
+      - key: TRANSLATION_ENABLED
+        value: "true"

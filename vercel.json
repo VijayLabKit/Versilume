@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "name": "versilume",
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/versilume",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}
