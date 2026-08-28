@@ -103,7 +103,7 @@ class PollinationsImageProvider(ImageProvider):
         encoded = urllib.parse.quote(full_prompt)
         url = (
             f"https://image.pollinations.ai/prompt/{encoded}"
-            f"?width={width}&height={height}&seed={seed}&nologo=true"
+            f"?width={width}&height={height}&seed={seed}&nologo=true&model=flux"
         )
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:

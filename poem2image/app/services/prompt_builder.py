@@ -35,16 +35,19 @@ _THEME_MOOD_HINTS: dict[str, str] = {
     "technology_and_progress": "sleek futuristic lighting, precise geometric composition, cool metallic tones",
 }
 
-_STYLE_SUFFIX = "highly detailed, coherent scene, professional illustration quality"
+_STYLE_SUFFIX = (
+    "masterpiece, award-winning visual art, sharp focus, crisp details, natural proportions, "
+    "elegant cinematic lighting, 8k resolution"
+)
 
 
 _STYLE_KEYWORD_MAP: dict[str, str] = {
-    "watercolor": "exquisite storybook watercolor painting, delicate translucent washes of color, soft paper texture, luminous lighting, masterpiece illustration",
-    "oil-painting": "masterpiece oil painting, textured rich brushstrokes, dramatic golden lighting, fine canvas grain, classical fine art",
-    "ink-sketch": "intricate fine ink sketch, delicate cross-hatching, fine fountain pen linework, subtle sepia wash shading, handcrafted art",
-    "photorealistic": "stunning cinematic photography, 35mm lens, natural atmospheric lighting, rich depth of field, 8k resolution, photorealistic masterpiece",
-    "surreal": "surrealist art masterpiece, dreamlike ethereal composition, poetic symbolism, floating glowing elements, Salvador Dali and Magritte style",
-    "ukiyo-e": "traditional Japanese ukiyo-e woodblock print, elegant black keylines, harmonious flat color gradients, delicate washi paper texture, classic Hokusai aesthetic",
+    "watercolor": "exquisite storybook watercolor painting, delicate translucent washes of color, soft paper texture, luminous lighting, masterpiece illustration, clean detailed linework",
+    "oil-painting": "classical fine art oil painting, impasto brushwork, rich layered pigments, dramatic chiaroscuro lighting, canvas texture, museum fine art masterpiece",
+    "ink-sketch": "intricate fine ink etching, delicate cross-hatching, fine fountain pen linework, subtle sepia wash shading, handcrafted masterpiece illustration",
+    "photorealistic": "stunning 8k cinematic photography, 50mm f/1.4 lens, natural lifelike facial details, realistic skin texture, soft ambient bokeh, studio lighting, hyper-realistic masterpiece",
+    "surreal": "surrealist art masterpiece, dreamlike ethereal composition, poetic symbolism, floating glowing elements, Salvador Dali and René Magritte aesthetic, razor-sharp details",
+    "ukiyo-e": "authentic traditional Japanese ukiyo-e woodblock print, elegant black keylines, harmonious mineral pigments, delicate washi paper texture, classic Hokusai aesthetic",
 }
 
 
@@ -103,11 +106,10 @@ def build_image_prompt(
 def build_negative_prompt() -> str:
     """
     Standard negative prompt to suppress common diffusion failure modes
-    (text artifacts, extra limbs, watermarks in the generated content
-    itself). Most HF-hosted SDXL/SD3.5 endpoints accept this via the
-    `negative_prompt` parameter.
+    (distorted faces, extra fingers, text artifacts, watermarks).
     """
     return (
-        "text, watermark, signature, logo, blurry, distorted anatomy, "
-        "extra limbs, low quality, jpeg artifacts, oversaturated"
+        "deformed face, blurry eyes, distorted anatomy, warped face, extra limbs, extra fingers, "
+        "mutated hands, bad proportions, unnatural skin texture, poorly drawn face, poorly drawn hands, "
+        "disfigured, text, watermark, signature, logo, low quality, jpeg artifacts, oversaturated, plastic skin"
     )
