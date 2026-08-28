@@ -667,12 +667,61 @@
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
   }
 
+  /* Comprehensive Mobile & Tablet Responsive Engine */
   @media (max-width: 860px) {
-    .hero-section { grid-template-columns: 1fr; padding: 36px 0; text-align: center; }
-    .hero-desc { margin: 0 auto 24px; }
+    .hero-section { grid-template-columns: 1fr; padding: 32px 0 24px; text-align: center; gap: 28px; }
+    .hero-desc { margin: 0 auto 20px; font-size: 0.95rem; }
     .hero-actions { justify-content: center; }
-    .hero-features-strip { justify-content: center; }
-    .workspace-grid { grid-template-columns: 1fr; }
+    .hero-features-strip { justify-content: center; gap: 14px; }
+    .workspace-grid { grid-template-columns: 1fr; gap: 18px; }
+    .hero-visual { max-width: 280px; }
+    .holo-orb { width: 220px; height: 220px; }
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 0 16px; }
+    .nav-bar { height: 60px; }
+    .brand-logo { font-size: 1.22rem; }
+    .brand-icon { width: 28px; height: 28px; font-size: 0.85rem; }
+    .nav-menu { gap: 14px; }
+    .nav-link { font-size: 0.82rem; }
+    
+    .hero-title { font-size: 2rem; line-height: 1.15; }
+    .hero-actions { flex-direction: column; width: 100%; }
+    .hero-actions .btn-primary, .hero-actions .btn-secondary { width: 100%; justify-content: center; }
+    
+    /* Horizontal touch scroll for demo chips on mobile */
+    .demo-strip {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+    .demo-strip::-webkit-scrollbar { display: none; }
+    .demo-chip { flex-shrink: 0; white-space: nowrap; font-size: 0.74rem; padding: 6px 11px; }
+
+    .studio-card, .output-card { padding: 16px; }
+    .parchment-box { padding: 14px; }
+    #poemInput { min-height: 150px; font-size: 1.05rem; }
+    .parchment-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+    
+    .action-row { flex-direction: column; align-items: stretch; gap: 10px; }
+    .action-row .btn-primary { width: 100%; justify-content: center; }
+    .action-row span { text-align: center; font-size: 0.75rem; }
+
+    .style-cards-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .showcase-thumb { height: 60px; }
+    .showcase-info { padding: 8px 10px; }
+    .showcase-info h4 { font-size: 0.82rem; }
+    .showcase-info p { display: none; }
+
+    .lightbox-modal { padding: 12px; }
+    .lightbox-modal img { max-width: 96vw; max-height: 72vh; }
+    .lightbox-close-btn { top: 16px; right: 16px; width: 34px; height: 34px; font-size: 0.95rem; }
+
+    .footer-inner { flex-direction: column; text-align: center; gap: 8px; }
   }
 </style>
 </head>
