@@ -1003,14 +1003,18 @@ const toastPill = document.getElementById('toastPill');
 })();
 
 /* =========================================================
-   Mood & Text Stats
+   Mood & Text Stats (Real-Time Live Analyzer)
    ========================================================= */
 const MOODS = {
-  Serene: ['pond', 'still', 'calm', 'quiet', 'water', 'gentle', 'leaf', 'peace', 'নদী', 'শান্তি'],
-  Joyful: ['sun', 'gold', 'light', 'laugh', 'bloom', 'dance', 'warm', 'আনন্দ', 'আলো', 'হাসি'],
-  Melancholy: ['tears', 'alone', 'gray', 'fading', 'silence', 'cold', 'grief', 'বিষাদ', 'দুঃখ'],
-  Romantic: ['love', 'heart', 'beloved', 'embrace', 'whisper', 'kiss', 'প্রেম', 'হৃদয়'],
-  Mysterious: ['shadow', 'night', 'mist', 'secret', 'fog', 'dark', 'moon', 'আঁধার', 'ছায়া']
+  Playful: ['soft launch', 'goner', 'date', 'movie', 'joke', 'fun', 'game', 'laugh', 'tease', 'wink', 'smile', 'mischief', 'খেলার', 'মজা'],
+  Romantic: ['love', 'heart', 'beloved', 'embrace', 'whisper', 'kiss', 'darling', 'forever', 'together', 'hold me', 'প্রেম', 'হৃদয়', 'ভালোবাসা'],
+  Fierce: ['fire', 'flame', 'oath', 'swear', 'fight', 'storm', 'rage', 'war', 'defy', 'unbroken', 'blood', 'sword', 'অগ্নি', 'শপথ', 'যুদ্ধ'],
+  Melancholy: ['tears', 'alone', 'gray', 'fading', 'silence', 'cold', 'grief', 'sorrow', 'lost', 'empty', 'weep', 'mourn', 'বিষাদ', 'দুঃখ'],
+  Joyful: ['sun', 'gold', 'light', 'bloom', 'dance', 'warm', 'celebrate', 'holiday', 'cheer', 'bright', 'আনন্দ', 'আলো', 'হাসি', 'ছুটি'],
+  Mysterious: ['shadow', 'night', 'mist', 'secret', 'fog', 'dark', 'moon', 'abyss', 'veil', 'unseen', 'phantom', 'আঁধার', 'ছায়া'],
+  Nostalgic: ['remember', 'memory', 'childhood', 'years', 'faded', 'once', 'long ago', 'antique', 'photograph', 'স্মৃতি', 'পুরানো'],
+  Spiritual: ['sacred', 'divine', 'prayer', 'temple', 'soul', 'holy', 'blessed', 'shrine', 'heaven', 'eternity', 'পূজা', 'প্রার্থনা', 'ঈশ্বর'],
+  Serene: ['pond', 'still', 'calm', 'quiet', 'water', 'gentle', 'leaf', 'peace', 'breeze', 'lake', 'river', 'নদী', 'শান্তি', 'নীরব']
 };
 
 function analyzeText() {
@@ -1022,12 +1026,20 @@ function analyzeText() {
 
   const lower = text.toLowerCase();
   let detectedMood = "Serene";
+  let maxMatches = 0;
+
   for (const [mood, keywords] of Object.entries(MOODS)) {
-    if (keywords.some(k => lower.includes(k))) {
+    const matches = keywords.filter(k => lower.includes(k)).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
       detectedMood = mood;
-      break;
     }
   }
+
+  if (maxMatches === 0 && text.trim().length > 0) {
+    detectedMood = (text.includes('?') || text.includes('!')) ? "Playful" : "Contemplative";
+  }
+
   moodText.textContent = text.trim() ? `Tone: ${detectedMood}` : 'Write a line…';
 }
 poemInput.addEventListener('input', analyzeText);
